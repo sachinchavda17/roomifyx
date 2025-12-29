@@ -8,21 +8,22 @@ from app.features.rooms.service import (
     update_room_status
 )
 from app.core.dependencies import require_role
+from app.features.rooms.service import get_public_rooms
 
 router = APIRouter(prefix="/rooms", tags=["Rooms"])
 
 # 🔒 Admin only
 @router.post("/", status_code=status.HTTP_201_CREATED)
 def create_room_api(
-    room: RoomCreate,
-    user=Depends(require_role("admin"))
+    data: RoomCreate,
+    user=Depends(require_role("owner"))
 ):
-    return create_room(room)
+    return create_room(data, user["_id"])
 
 # 🔓 Admin + Staff
 @router.get("/")
 def get_rooms_api(
-    user=Depends(require_role("admin", "staff"))
+    user=Depends(require_role("admin", "owner")) #staff
 ):
     return get_all_rooms()
 
@@ -43,3 +44,24 @@ def update_room_status_api(
     user=Depends(require_role("admin", "staff"))
 ):
     return update_room_status(room_id, status)
+
+
+@router.get("/hotel/{hotel_id}")
+def get_rooms_for_hotel_api(
+    hotel_id: str,
+    user=Depends(require_role("owner"))
+):
+    return get_rooms_by_hotel(hotel_id, user["_id"])
+
+
+@router.get("/public/hotels/{hotel_id}/rooms", tags=["Public"])
+def public_rooms_api(hotel_id: str):
+    return get_public_rooms(hotel_id)
+
+@router.get("/public/hotels/{hotel_id}/rooms/availability", tags=["Public"])
+def public_room_availability_api(
+    hotel_id: str,
+    check_in: str,
+    check_out: str
+):
+    return get_available_rooms(hotel_id, check_in, check_out)

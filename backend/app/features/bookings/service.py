@@ -5,7 +5,7 @@ from fastapi import HTTPException, status
 from app.features.bookings.model import booking_collection
 from app.features.rooms.model import room_collection
 
-def create_booking(data):
+def create_booking(data, user_id: str | None = None):
     room_id = ObjectId(data.room_id)
 
     room = room_collection.find_one({"_id": room_id})
@@ -51,7 +51,8 @@ def create_booking(data):
         "nights": nights,
         "price_per_night": room["price"],
         "amount": amount,
-        "status": "booked"
+        "status": "booked",
+        "user_id": ObjectId(user_id) if user_id else None
     }
 
     booking_collection.insert_one(booking)
@@ -132,3 +133,23 @@ def cancel_booking(booking_id: str):
     )
 
     return {"message": "Booking cancelled successfully"}
+
+def create_public_booking(data):
+    # reuse the same logic
+    return create_booking(data)
+
+
+def get_my_bookings(user_id: str):
+    bookings = booking_collection.find({"user_id": ObjectId(user_id)})
+
+    return [
+        {
+            "id": str(b["_id"]),
+            "room_id": str(b["room_id"]),
+            "check_in": b["check_in"],
+            "check_out": b["check_out"],
+            "amount": b["amount"],
+            "status": b["status"]
+        }
+        for b in bookings
+    ]

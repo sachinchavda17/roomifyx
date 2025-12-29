@@ -18,3 +18,10 @@ class BookingCreate(BaseModel):
 
 class BookingUpdateStatus(BaseModel):
     status: BookingStatus
+
+class PublicBookingCreate(BaseModel):
+    room_id: str
+    customer_name: str
+    customer_phone: str
+    check_in: date
+    check_out: date
