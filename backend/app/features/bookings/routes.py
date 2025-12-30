@@ -20,14 +20,14 @@ router = APIRouter(prefix="/bookings", tags=["Bookings"])
 # @router.post("/", status_code=status.HTTP_201_CREATED)
 # def create_booking_api(
 #     data: BookingCreate,
-#     user=Depends(require_role("admin", "staff"))
+#     user=Depends(require_role("admin", "owner"))
 # ):
 #     return create_booking(data)
 
 # 🔓 Staff + Admin
 @router.get("/")
 def get_bookings_api(
-    user=Depends(require_role("admin", "staff"))
+    user=Depends(require_role("admin", "owner"))
 ):
     return get_all_bookings()
 
@@ -43,7 +43,7 @@ def booking_api(
 def update_booking_status_api(
     booking_id: str,
     data: BookingUpdateStatus,
-    user=Depends(require_role("admin", "staff"))
+    user=Depends(require_role("admin", "owner"))
 ):
     return update_booking_status(booking_id, data.status)
 
@@ -51,7 +51,7 @@ def update_booking_status_api(
 @router.patch("/{booking_id}/cancel")
 def cancel_booking_api(
     booking_id: str,
-    user=Depends(require_role("admin", "staff"))
+    user=Depends(require_role("admin", "owner"))
 ):
     return cancel_booking(booking_id)
 

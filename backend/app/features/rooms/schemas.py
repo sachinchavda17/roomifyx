@@ -2,7 +2,7 @@ from pydantic import BaseModel, Field
 from typing import Literal, Optional
 
 RoomStatus = Literal["available", "occupied", "maintenance"]
-RoomType = Literal["standard", "deluxe", "suite"]
+RoomType = Literal["standard", "premium", "deluxe", "suite"]
 
 class RoomCreate(BaseModel):
     hotel_id: str

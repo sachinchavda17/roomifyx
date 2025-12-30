@@ -7,6 +7,6 @@ router = APIRouter(prefix="/dashboard", tags=["Dashboard"])
 # 🔒 Admin only
 @router.get("/")
 def dashboard_api(
-    user=Depends(require_role("admin"))
+    user=Depends(require_role("admin",'owner'))
 ):
     return get_dashboard_stats()

@@ -68,9 +68,21 @@ def get_all_bookings():
     bookings = []
     for b in booking_collection.find():
         b["_id"] = str(b["_id"])
-        b["room_id"] = str(b["room_id"])
         bookings.append(b)
-    return bookings
+    return [
+        {
+            "id": b["_id"],
+            "customer_name": b["customer_name"],
+            "customer_phone": b["customer_phone"],
+            "room_id": str(b["room_id"]),
+            "check_in": b["check_in"],
+            "check_out": b["check_out"],
+            "amount": b["amount"],
+            "status": b["status"],
+            "user_id": str(b["user_id"]) if b["user_id"] else None
+        }
+        for b in bookings
+    ]
 
 
 def update_booking_status(booking_id: str, new_status: str):
