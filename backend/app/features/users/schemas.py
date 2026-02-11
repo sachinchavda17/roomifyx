@@ -1,7 +1,7 @@
 from pydantic import BaseModel, EmailStr
 from typing import Literal
 
-UserRole = Literal["admin", "staff"]
+UserRole = Literal["admin", "staff", "guest"]
 
 class UserPublic(BaseModel):
     id: str

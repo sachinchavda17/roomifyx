@@ -4,12 +4,19 @@ from typing import Literal, Optional
 RoomStatus = Literal["available", "occupied", "maintenance"]
 RoomType = Literal["standard", "premium", "deluxe", "suite"]
 
+
 class RoomCreate(BaseModel):
     hotel_id: str
     room_number: str = Field(..., example="101")
+    title: str = Field(..., min_length=5)
+    description: str = Field(..., min_length=20)
     room_type: RoomType
     price: float = Field(..., gt=0)
+    images: list[str] = Field(default_factory=list)
+    location: str = Field(..., example="Mumbai, India")
+    amenities: list[str] = Field(default_factory=list)
     # status: RoomStatus = "available"
+
 
 class RoomUpdate(BaseModel):
     type: Optional[RoomType] = None
