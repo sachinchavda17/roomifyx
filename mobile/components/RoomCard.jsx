@@ -1,7 +1,7 @@
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native"
 import { Image } from "expo-image"
 import { Ionicons } from "@expo/vector-icons"
-import { Colors, Typography, Spacing } from "../../constants/Theme"
+import { Colors, Typography, Spacing } from "../constants/Theme"
 import { toast } from "sonner-native"
 
 export default function RoomCard({ item }) {

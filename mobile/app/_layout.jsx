@@ -9,8 +9,9 @@ export default function RootLayout() {
     <SafeAreaProvider>
       <GestureHandlerRootView style={{ flex: 1 }}>
         <StatusBar style="dark" />
-        <Stack>
-          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        <Stack screenOptions={{ headerShown: false }}>
+          <Stack.Screen name="(tabs)" />
+          <Stack.Screen name="(auth)" />
         </Stack>
         <Toaster />
       </GestureHandlerRootView>

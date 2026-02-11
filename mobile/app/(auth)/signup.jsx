@@ -1,0 +1,170 @@
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, KeyboardAvoidingView, Platform } from "react-native"
+import { useState } from "react"
+import { useRouter, Link } from "expo-router"
+import { Colors, Spacing, Typography } from "../../constants/Theme"
+
+export default function SignupScreen() {
+  const [firstName, setFirstName] = useState("")
+  const [lastName, setLastName] = useState("")
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
+  const router = useRouter()
+
+  const handleSignup = () => {
+    // Mock signup success
+    router.replace("/(tabs)")
+  }
+
+  return (
+    <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={styles.container}>
+      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+        <View style={styles.header}>
+          <Text style={styles.title}>Create an account</Text>
+          <Text style={styles.subtitle}>Join Roomify to manage your bookings</Text>
+        </View>
+
+        <View style={styles.form}>
+          <View style={styles.row}>
+            <View style={[styles.inputContainer, { flex: 1 }]}>
+              <Text style={styles.label}>First name</Text>
+              <TextInput style={styles.input} placeholder="John" value={firstName} onChangeText={setFirstName} />
+            </View>
+            <View style={[styles.inputContainer, { flex: 1, marginLeft: Spacing.md }]}>
+              <Text style={styles.label}>Last name</Text>
+              <TextInput style={styles.input} placeholder="Doe" value={lastName} onChangeText={setLastName} />
+            </View>
+          </View>
+
+          <View style={styles.inputContainer}>
+            <Text style={styles.label}>Email</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="example@mail.com"
+              value={email}
+              onChangeText={setEmail}
+              keyboardType="email-address"
+              autoCapitalize="none"
+            />
+          </View>
+
+          <View style={styles.inputContainer}>
+            <Text style={styles.label}>Password</Text>
+            <TextInput style={styles.input} placeholder="At least 8 characters" value={password} onChangeText={setPassword} secureTextEntry />
+          </View>
+
+          <Text style={styles.termsText}>
+            By signing up, I agree to Roomify's
+            <Text style={styles.boldText}> Terms of Service</Text> and
+            <Text style={styles.boldText}> Privacy Policy</Text>.
+          </Text>
+
+          <TouchableOpacity style={styles.signupButton} onPress={handleSignup}>
+            <Text style={styles.signupButtonText}>Create account</Text>
+          </TouchableOpacity>
+        </View>
+
+        <View style={styles.footer}>
+          <Text style={styles.footerText}>Already have an account? </Text>
+          <Link href="/(auth)/login" asChild>
+            <TouchableOpacity>
+              <Text style={styles.loginLink}>Log in</Text>
+            </TouchableOpacity>
+          </Link>
+        </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
+  )
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: Colors.white,
+  },
+  scrollContent: {
+    padding: Spacing.lg,
+  },
+  header: {
+    marginTop: Spacing.xl,
+    marginBottom: Spacing.xl,
+  },
+  title: {
+    fontSize: Typography.size.xxl,
+    fontWeight: Typography.weight.bold,
+    color: Colors.black,
+  },
+  subtitle: {
+    fontSize: Typography.size.md,
+    color: Colors.darkGray,
+    marginTop: Spacing.xs,
+  },
+  form: {
+    marginBottom: Spacing.xl,
+  },
+  row: {
+    flexDirection: "row",
+    marginBottom: Spacing.md,
+  },
+  inputContainer: {
+    marginBottom: Spacing.md,
+  },
+  label: {
+    fontSize: Typography.size.sm,
+    fontWeight: Typography.weight.semibold,
+    color: Colors.black,
+    marginBottom: Spacing.xs,
+  },
+  input: {
+    height: 55,
+    borderWidth: 1,
+    borderColor: Colors.lightGray,
+    borderRadius: 12,
+    paddingHorizontal: Spacing.md,
+    fontSize: Typography.size.md,
+    color: Colors.black,
+  },
+  termsText: {
+    fontSize: Typography.size.xs,
+    color: Colors.darkGray,
+    lineHeight: 18,
+    marginBottom: Spacing.xl,
+  },
+  boldText: {
+    fontWeight: Typography.weight.bold,
+    color: Colors.black,
+  },
+  signupButton: {
+    height: 55,
+    backgroundColor: Colors.primary,
+    borderRadius: 12,
+    justifyContent: "center",
+    alignItems: "center",
+    shadowColor: Colors.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  signupButtonText: {
+    fontSize: Typography.size.md,
+    fontWeight: Typography.weight.bold,
+    color: Colors.white,
+  },
+  footer: {
+    flexDirection: "row",
+    justifyContent: "center",
+    marginTop: Spacing.md,
+    marginBottom: Spacing.xl,
+  },
+  footerText: {
+    fontSize: Typography.size.md,
+    color: Colors.darkGray,
+  },
+  loginLink: {
+    fontSize: Typography.size.md,
+    fontWeight: Typography.weight.bold,
+    color: Colors.black,
+    textDecorationLine: "underline",
+  },
+})
+

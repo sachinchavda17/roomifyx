@@ -1,22 +1,36 @@
-import { View, Text, StyleSheet, TouchableOpacity } from "react-native"
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from "react-native"
 import { Ionicons } from "@expo/vector-icons"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
 import { Colors, Spacing, Typography } from "../../constants/Theme"
+import { Link } from "expo-router"
 
 export default function ProfileScreen() {
   const insets = useSafeAreaInsets()
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
-      <View style={styles.content}>
+      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <Text style={styles.title}>Profile</Text>
 
         <View style={styles.profileHeader}>
           <View style={styles.avatar}>
             <Ionicons name="person" size={40} color={Colors.white} />
           </View>
-          <View>
+          <View style={{ flex: 1 }}>
             <Text style={styles.userName}>Sachin Chavda</Text>
             <Text style={styles.userEmail}>sachin@example.com</Text>
+          </View>
+        </View>
+
+        {/* Login Promo for Mockup */}
+        <View style={styles.loginCard}>
+          <View style={styles.loginCardContent}>
+            <Text style={styles.loginCardTitle}>Log in for the best experience</Text>
+            <Text style={styles.loginCardSubtitle}>Access your bookings, saved places, and more from any device.</Text>
+            <Link href="/(auth)/login" asChild>
+              <TouchableOpacity style={styles.loginCardButton}>
+                <Text style={styles.loginCardButtonText}>Log in</Text>
+              </TouchableOpacity>
+            </Link>
           </View>
         </View>
 
@@ -30,7 +44,7 @@ export default function ProfileScreen() {
         <TouchableOpacity style={styles.logoutButton}>
           <Text style={styles.logoutText}>Log out</Text>
         </TouchableOpacity>
-      </View>
+      </ScrollView>
     </View>
   )
 }
@@ -84,6 +98,41 @@ const styles = StyleSheet.create({
   },
   menu: {
     marginBottom: Spacing.xl,
+  },
+  loginCard: {
+    backgroundColor: Colors.white,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: Colors.lightGray,
+    marginBottom: Spacing.xl,
+    padding: Spacing.md,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  loginCardTitle: {
+    fontSize: Typography.size.md,
+    fontWeight: Typography.weight.semibold,
+    color: Colors.black,
+    marginBottom: 4,
+  },
+  loginCardSubtitle: {
+    fontSize: Typography.size.sm,
+    color: Colors.darkGray,
+    marginBottom: Spacing.md,
+  },
+  loginCardButton: {
+    backgroundColor: Colors.primary,
+    paddingVertical: 12,
+    borderRadius: 8,
+    alignItems: "center",
+  },
+  loginCardButtonText: {
+    color: Colors.white,
+    fontWeight: Typography.weight.bold,
+    fontSize: Typography.size.md,
   },
   menuItem: {
     flexDirection: "row",
