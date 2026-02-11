@@ -35,6 +35,7 @@ export default function ProfileScreen() {
         </View>
 
         <View style={styles.menu}>
+          <MenuLink icon="business-outline" title="Manage Hotels" href="/hotels" />
           <MenuLink icon="person-outline" title="Personal info" />
           <MenuLink icon="shield-checkmark-outline" title="Login & security" />
           <MenuLink icon="card-outline" title="Payments & payouts" />
@@ -49,14 +50,24 @@ export default function ProfileScreen() {
   )
 }
 
-function MenuLink({ icon, title }) {
-  return (
-    <TouchableOpacity style={styles.menuItem}>
+function MenuLink({ icon, title, href }) {
+  const content = (
+    <View style={styles.menuItem}>
       <Ionicons name={icon} size={24} color={Colors.black} />
       <Text style={styles.menuText}>{title}</Text>
       <Ionicons name="chevron-forward" size={20} color={Colors.darkGray} />
-    </TouchableOpacity>
+    </View>
   )
+
+  if (href) {
+    return (
+      <Link href={href} asChild>
+        <TouchableOpacity>{content}</TouchableOpacity>
+      </Link>
+    )
+  }
+
+  return <TouchableOpacity>{content}</TouchableOpacity>
 }
 
 const styles = StyleSheet.create({

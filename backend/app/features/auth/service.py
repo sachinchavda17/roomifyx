@@ -29,6 +29,7 @@ def register_user(user):
 
 def login_user(data):
     try:
+        print(data)
         user = user_collection.find_one({"email": data.email})
 
         if not user or not verify_password(data.password, user["password"]):

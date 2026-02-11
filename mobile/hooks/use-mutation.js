@@ -1,38 +1,31 @@
 import { useEffect } from "react"
 import { useMutation as useTanstackMutation } from "@tanstack/react-query"
-import Toast from "react-native-toast-message"
+import { toast } from "sonner-native"
 
 export const useMutation = ({ mutationFn, onSuccess = () => {}, onError = () => {}, showSuccess = true, showError = true }) => {
   const onMutationSuccess = (data, variables) => {
     if (data) onSuccess(data, variables)
     if (showSuccess) {
-      Toast.show({
-        type: "success",
-        text1: "Success",
-        text2: variables?.message || data.msg || data.message || "Operation successful",
-      })
+      toast.success(variables?.message || data.msg || data.message || "Operation successful")
     }
   }
 
-  const { data, isError, error, isSuccess, ...others } = useTanstackMutation({
+  const { data, isError, error, isSuccess, isPending, ...others } = useTanstackMutation({
     mutationFn: (d) => mutationFn(d),
     onSuccess: (data, variables) => onMutationSuccess(data, variables),
   })
 
   useEffect(() => {
     if (isError) {
+      console.log(error)
       const description = error?.msg || "Something went wrong !"
       if (showError) {
-        Toast.show({
-          type: "error",
-          text1: "Error",
-          text2: description,
-        })
+        toast.error(description)
       }
       onError(error)
     }
   }, [isError])
 
-  return { data, isError, error, isSuccess, ...others }
+  return { data, isError, error, isSuccess, isLoading: isPending, ...others }
 }
 

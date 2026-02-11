@@ -5,9 +5,18 @@ import { ROOMS, CATEGORIES } from "../../constants/MockData"
 import RoomCard from "../../components/RoomCard"
 import SearchHeader from "../../components/SearchHeader"
 import CategoryBar from "../../components/CategoryBar"
+import { useQuery } from "@/hooks/use-query"
+import { getPublicHotels } from "@/services/hotels"
 
 export default function ExploreScreen() {
   const [activeCategory, setActiveCategory] = useState("Amazing Views")
+
+  const { data, isLoading } = useQuery({
+    queryKey: ["hotels"],
+    queryFn: getPublicHotels,
+  })
+
+  console.log("data", data)
 
   return (
     <View style={styles.container}>
@@ -15,7 +24,7 @@ export default function ExploreScreen() {
       <CategoryBar categories={CATEGORIES} activeCategory={activeCategory} onCategoryChange={setActiveCategory} />
 
       <FlatList
-        data={ROOMS}
+        data={data}
         renderItem={({ item }) => <RoomCard item={item} />}
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.listContent}
@@ -35,5 +44,4 @@ const styles = StyleSheet.create({
     paddingTop: Spacing.md,
   },
 })
-
 

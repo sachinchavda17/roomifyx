@@ -23,6 +23,22 @@ export const ROOMS = [
     rating: 4.7,
     image: "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&q=80&w=800",
   },
+  {
+    id: "4",
+    title: "Modern Loft in Downtown",
+    location: "New York, USA",
+    price: 195,
+    rating: 4.7,
+    image: "https://images.unsplash.com/?auto=format&fit=crop&q=80&w=800",
+  },
+  {
+    id: "5",
+    title: "Modern Loft in Downtown",
+    location: "New York, USA",
+    price: 195,
+    rating: 4.7,
+    image: "https://images.unsplash.com/?auto=format&fit=crop&q=80&w=800",
+  },
 ]
 
 export const CATEGORIES = [

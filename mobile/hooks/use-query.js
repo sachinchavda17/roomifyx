@@ -1,6 +1,6 @@
 import { useEffect } from "react"
 import { useQuery as useTanstackQuery } from "@tanstack/react-query"
-import Toast from "react-native-toast-message"
+import { toast } from "sonner-native"
 
 export const useQuery = ({
   queryKey,
@@ -12,7 +12,7 @@ export const useQuery = ({
   showError = false,
   ...rest
 }) => {
-  const { data, isError, error, isRefetching, dataUpdatedAt, ...others } = useTanstackQuery({
+  const { data, isError, error, isRefetching, dataUpdatedAt, isPending, ...others } = useTanstackQuery({
     queryKey,
     queryFn: () => queryFn(payload),
     retry: false,
@@ -24,20 +24,11 @@ export const useQuery = ({
       onError(error)
       if (showError) {
         const description = error?.msg || "Something went wrong !"
-        Toast.show({ type: "error", text1: "Error", text2: description })
+        toast.error(description)
       }
     }
   }, [isError])
 
-  useEffect(() => {
-    if (data) {
-      onSuccess(data)
-      if (showSuccess) {
-        Toast.show({ type: "success", text1: "Success", text2: data.msg || data.message || "Operation successful" })
-      }
-    }
-  }, [data, dataUpdatedAt])
-
-  return { data, isError, error, ...others }
+  return { data, isError, error, isLoading: isPending, ...others }
 }
 

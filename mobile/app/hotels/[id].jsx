@@ -1,0 +1,156 @@
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, ActivityIndicator } from "react-native"
+import { useQuery } from "@/hooks/use-query"
+import { useMutation } from "@/hooks/use-mutation"
+import { updateHotel, getPublicHotel } from "@/services/hotels"
+import { useState, useEffect } from "react"
+import { useRouter, Stack, useLocalSearchParams } from "expo-router"
+import { Colors, Spacing, Typography } from "../../constants/Theme"
+import { toast } from "sonner-native"
+
+export default function EditHotelScreen() {
+  const { id } = useLocalSearchParams()
+  const router = useRouter()
+  const [formData, setFormData] = useState({
+    name: "",
+    city: "",
+    address: "",
+    description: "",
+  })
+
+  const { data: hotel, isLoading: isFetching } = useQuery({
+    queryKey: ["hotel", id],
+    queryFn: () => getPublicHotel(id),
+    enabled: !!id,
+  })
+
+  useEffect(() => {
+    if (hotel) {
+      setFormData({
+        name: hotel.name,
+        city: hotel.city,
+        address: hotel.address,
+        description: hotel.description || "",
+      })
+    }
+  }, [hotel])
+
+  const { mutate, isLoading: isUpdating } = useMutation({
+    mutationFn: (data) => updateHotel({ id, data }),
+    onSuccess: () => {
+      toast.success("Hotel updated successfully")
+      router.back()
+    },
+    onError: (error) => {
+      toast.error(error.message || "Failed to update hotel")
+    },
+  })
+
+  const handleSubmit = () => {
+    if (!formData.name || !formData.city || !formData.address) {
+      toast.error("Please fill in required fields")
+      return
+    }
+    mutate(formData)
+  }
+
+  if (isFetching) {
+    return (
+      <View style={styles.center}>
+        <ActivityIndicator size="large" color={Colors.primary} />
+      </View>
+    )
+  }
+
+  return (
+    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+      <Stack.Screen options={{ title: "Edit Hotel" }} />
+
+      <View style={styles.formGroup}>
+        <Text style={styles.label}>Hotel Name *</Text>
+        <TextInput style={styles.input} value={formData.name} onChangeText={(text) => setFormData({ ...formData, name: text })} />
+      </View>
+
+      <View style={styles.row}>
+        <View style={[styles.formGroup, { flex: 1, marginRight: Spacing.sm }]}>
+          <Text style={styles.label}>City *</Text>
+          <TextInput style={styles.input} value={formData.city} onChangeText={(text) => setFormData({ ...formData, city: text })} />
+        </View>
+        <View style={[styles.formGroup, { flex: 1, marginLeft: Spacing.sm }]}>
+          <Text style={styles.label}>Address *</Text>
+          <TextInput style={styles.input} value={formData.address} onChangeText={(text) => setFormData({ ...formData, address: text })} />
+        </View>
+      </View>
+
+      <View style={styles.formGroup}>
+        <Text style={styles.label}>Description</Text>
+        <TextInput
+          style={[styles.input, styles.textArea]}
+          multiline
+          numberOfLines={4}
+          textAlignVertical="top"
+          value={formData.description}
+          onChangeText={(text) => setFormData({ ...formData, description: text })}
+        />
+      </View>
+
+      <TouchableOpacity style={[styles.submitButton, isUpdating && styles.disabledButton]} onPress={handleSubmit} disabled={isUpdating}>
+        {isUpdating ? <ActivityIndicator color={Colors.white} /> : <Text style={styles.submitButtonText}>Update Hotel</Text>}
+      </TouchableOpacity>
+    </ScrollView>
+  )
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: Colors.white,
+  },
+  content: {
+    padding: Spacing.lg,
+  },
+  center: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  formGroup: {
+    marginBottom: Spacing.lg,
+  },
+  row: {
+    flexDirection: "row",
+  },
+  label: {
+    fontSize: Typography.size.sm,
+    fontWeight: Typography.weight.semibold,
+    color: Colors.black,
+    marginBottom: Spacing.xs,
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: Colors.lightGray,
+    borderRadius: 8,
+    padding: Spacing.md,
+    fontSize: Typography.size.md,
+    color: Colors.black,
+    backgroundColor: Colors.white,
+  },
+  textArea: {
+    height: 100,
+  },
+  submitButton: {
+    backgroundColor: Colors.primary,
+    padding: Spacing.md,
+    borderRadius: 8,
+    alignItems: "center",
+    marginTop: Spacing.md,
+  },
+  disabledButton: {
+    opacity: 0.7,
+  },
+  submitButtonText: {
+    color: Colors.white,
+    fontWeight: Typography.weight.bold,
+    fontSize: Typography.size.md,
+  },
+})
+

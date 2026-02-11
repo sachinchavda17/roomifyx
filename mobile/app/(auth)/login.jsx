@@ -3,6 +3,9 @@ import { useState } from "react"
 import { useRouter, Link } from "expo-router"
 import { Ionicons } from "@expo/vector-icons"
 import { Colors, Spacing, Typography } from "../../constants/Theme"
+import { useMutation } from "@/hooks/use-mutation"
+import { login } from "@/services/auth"
+import { toast } from "sonner-native"
 
 export default function LoginScreen() {
   const [email, setEmail] = useState("")
@@ -10,9 +13,16 @@ export default function LoginScreen() {
   const router = useRouter()
 
   const handleLogin = () => {
-    // Mock login success
-    router.replace("/(tabs)")
+    console.log("email", email, password)
+    mutate({ email, password })
   }
+
+  const { isLoading, mutate } = useMutation({
+    mutationFn: login,
+    onSuccess: () => {
+      router.replace("/(tabs)")
+    },
+  })
 
   return (
     <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={styles.container}>
