@@ -1,11 +1,12 @@
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, ActivityIndicator } from "react-native"
-import { useQuery } from "@/hooks/use-query"
-import { useMutation } from "@/hooks/use-mutation"
-import { updateHotel, getPublicHotel } from "@/services/hotels"
+import { useQuery } from "../../hooks/use-query"
+import { useMutation } from "../../hooks/use-mutation"
+import { updateHotel, getPublicHotel } from "../../services/hotels"
 import { useState, useEffect } from "react"
 import { useRouter, Stack, useLocalSearchParams } from "expo-router"
 import { Colors, Spacing, Typography } from "../../constants/Theme"
 import { toast } from "sonner-native"
+import InputText from "../../components/InputText"
 
 export default function EditHotelScreen() {
   const { id } = useLocalSearchParams()
@@ -65,33 +66,32 @@ export default function EditHotelScreen() {
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <Stack.Screen options={{ title: "Edit Hotel" }} />
 
-      <View style={styles.formGroup}>
-        <Text style={styles.label}>Hotel Name *</Text>
-        <TextInput style={styles.input} value={formData.name} onChangeText={(text) => setFormData({ ...formData, name: text })} />
-      </View>
+      <InputText label="Hotel Name *" value={formData.name} onChangeText={(text) => setFormData({ ...formData, name: text })} />
 
       <View style={styles.row}>
-        <View style={[styles.formGroup, { flex: 1, marginRight: Spacing.sm }]}>
-          <Text style={styles.label}>City *</Text>
-          <TextInput style={styles.input} value={formData.city} onChangeText={(text) => setFormData({ ...formData, city: text })} />
-        </View>
-        <View style={[styles.formGroup, { flex: 1, marginLeft: Spacing.sm }]}>
-          <Text style={styles.label}>Address *</Text>
-          <TextInput style={styles.input} value={formData.address} onChangeText={(text) => setFormData({ ...formData, address: text })} />
-        </View>
-      </View>
-
-      <View style={styles.formGroup}>
-        <Text style={styles.label}>Description</Text>
-        <TextInput
-          style={[styles.input, styles.textArea]}
-          multiline
-          numberOfLines={4}
-          textAlignVertical="top"
-          value={formData.description}
-          onChangeText={(text) => setFormData({ ...formData, description: text })}
+        <InputText
+          label="City *"
+          value={formData.city}
+          onChangeText={(text) => setFormData({ ...formData, city: text })}
+          style={{ flex: 1, marginRight: Spacing.sm }}
+        />
+        <InputText
+          label="Address *"
+          value={formData.address}
+          onChangeText={(text) => setFormData({ ...formData, address: text })}
+          style={{ flex: 1, marginLeft: Spacing.sm }}
         />
       </View>
+
+      <InputText
+        label="Description"
+        multiline
+        numberOfLines={4}
+        textAlignVertical="top"
+        value={formData.description}
+        onChangeText={(text) => setFormData({ ...formData, description: text })}
+        inputWrapperStyle={{ height: 120, minHeight: 120 }}
+      />
 
       <TouchableOpacity style={[styles.submitButton, isUpdating && styles.disabledButton]} onPress={handleSubmit} disabled={isUpdating}>
         {isUpdating ? <ActivityIndicator color={Colors.white} /> : <Text style={styles.submitButtonText}>Update Hotel</Text>}

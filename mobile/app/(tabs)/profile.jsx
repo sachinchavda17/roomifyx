@@ -2,10 +2,29 @@ import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from "react-nati
 import { Ionicons } from "@expo/vector-icons"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
 import { Colors, Spacing, Typography } from "../../constants/Theme"
-import { Link } from "expo-router"
+import { Link, useRouter } from "expo-router"
+import { useAuth } from "../../context/AuthContext"
+import { useQuery } from "../../hooks/use-query"
+import { profile } from "../../services/user"
 
 export default function ProfileScreen() {
   const insets = useSafeAreaInsets()
+  const { isAuthenticated, logout } = useAuth()
+  const router = useRouter()
+
+  const { isLoading, data } = useQuery({
+    queryKey: ["profile"],
+    queryFn: profile,
+    enabled: isAuthenticated,
+  })
+
+  console.log("data", data)
+
+  const handleLogout = async () => {
+    await logout()
+    router.replace("/(auth)/login")
+  }
+
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
@@ -16,23 +35,26 @@ export default function ProfileScreen() {
             <Ionicons name="person" size={40} color={Colors.white} />
           </View>
           <View style={{ flex: 1 }}>
-            <Text style={styles.userName}>Sachin Chavda</Text>
-            <Text style={styles.userEmail}>sachin@example.com</Text>
+            <Text style={styles.userName}>
+              {data?.name} {data?.first_name} {data?.last_name} {isAuthenticated ? "" : "Guest"}
+            </Text>
+            <Text style={styles.userEmail}>{data?.email}</Text>
           </View>
         </View>
 
-        {/* Login Promo for Mockup */}
-        <View style={styles.loginCard}>
-          <View style={styles.loginCardContent}>
-            <Text style={styles.loginCardTitle}>Log in for the best experience</Text>
-            <Text style={styles.loginCardSubtitle}>Access your bookings, saved places, and more from any device.</Text>
-            <Link href="/(auth)/login" asChild>
-              <TouchableOpacity style={styles.loginCardButton}>
-                <Text style={styles.loginCardButtonText}>Log in</Text>
-              </TouchableOpacity>
-            </Link>
+        {!isAuthenticated && (
+          <View style={styles.loginCard}>
+            <View style={styles.loginCardContent}>
+              <Text style={styles.loginCardTitle}>Log in for the best experience</Text>
+              <Text style={styles.loginCardSubtitle}>Access your bookings, saved places, and more from any device.</Text>
+              <Link href="/(auth)/login" asChild>
+                <TouchableOpacity style={styles.loginCardButton}>
+                  <Text style={styles.loginCardButtonText}>Log in</Text>
+                </TouchableOpacity>
+              </Link>
+            </View>
           </View>
-        </View>
+        )}
 
         <View style={styles.menu}>
           <MenuLink icon="business-outline" title="Manage Hotels" href="/hotels" />
@@ -42,9 +64,11 @@ export default function ProfileScreen() {
           <MenuLink icon="settings-outline" title="Settings" />
         </View>
 
-        <TouchableOpacity style={styles.logoutButton}>
-          <Text style={styles.logoutText}>Log out</Text>
-        </TouchableOpacity>
+        {isAuthenticated && (
+          <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+            <Text style={styles.logoutText}>Log out</Text>
+          </TouchableOpacity>
+        )}
       </ScrollView>
     </View>
   )

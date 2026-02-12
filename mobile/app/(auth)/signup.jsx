@@ -2,8 +2,15 @@ import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Keyboa
 import { useState } from "react"
 import { useRouter, Link } from "expo-router"
 import { Colors, Spacing, Typography } from "../../constants/Theme"
+import { useMutation } from "../../hooks/use-mutation"
+import { useAuth } from "../../context/AuthContext"
+import { signup } from "../../services/auth"
+import { toast } from "sonner-native"
+import InputText from "../../components/InputText"
+import { CircularLoader } from "../../components/molecules/circular-loader"
 
 export default function SignupScreen() {
+  const { login: handleAuthLogin } = useAuth()
   const [firstName, setFirstName] = useState("")
   const [lastName, setLastName] = useState("")
   const [email, setEmail] = useState("")
@@ -11,55 +18,62 @@ export default function SignupScreen() {
   const router = useRouter()
 
   const handleSignup = () => {
-    // Mock signup success
-    router.replace("/(tabs)")
+    if (!email || !password || !firstName || !lastName) {
+      toast.error("Please fill in all fields")
+      return
+    }
+    mutate({ email, password, first_name: firstName, last_name: lastName })
   }
+
+  const { isLoading, mutate } = useMutation({
+    mutationFn: signup,
+    onSuccess: async (data) => {
+      if (data?.token) {
+        await handleAuthLogin(data.token)
+        router.replace("/(tabs)")
+      }
+    },
+  })
 
   return (
     <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
           <Text style={styles.title}>Create an account</Text>
-          <Text style={styles.subtitle}>Join Roomify to manage your bookings</Text>
+          <Text style={styles.subtitle}>Join RoomifyX to manage your bookings</Text>
         </View>
 
         <View style={styles.form}>
           <View style={styles.row}>
-            <View style={[styles.inputContainer, { flex: 1 }]}>
-              <Text style={styles.label}>First name</Text>
-              <TextInput style={styles.input} placeholder="John" value={firstName} onChangeText={setFirstName} />
-            </View>
-            <View style={[styles.inputContainer, { flex: 1, marginLeft: Spacing.md }]}>
-              <Text style={styles.label}>Last name</Text>
-              <TextInput style={styles.input} placeholder="Doe" value={lastName} onChangeText={setLastName} />
-            </View>
-          </View>
-
-          <View style={styles.inputContainer}>
-            <Text style={styles.label}>Email</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="example@mail.com"
-              value={email}
-              onChangeText={setEmail}
-              keyboardType="email-address"
-              autoCapitalize="none"
+            <InputText
+              label="First name"
+              placeholder="John"
+              value={firstName}
+              onChangeText={setFirstName}
+              style={{ flex: 1, marginRight: Spacing.sm }}
+              isRequired
             />
+            <InputText label="Last name" placeholder="Doe" value={lastName} onChangeText={setLastName} style={{ flex: 1 }} isRequired />
           </View>
 
-          <View style={styles.inputContainer}>
-            <Text style={styles.label}>Password</Text>
-            <TextInput style={styles.input} placeholder="At least 8 characters" value={password} onChangeText={setPassword} secureTextEntry />
-          </View>
+          <InputText
+            label="Email"
+            placeholder="example@email.com"
+            value={email}
+            onChangeText={setEmail}
+            keyboardType="email-address"
+            autoCapitalize="none"
+            isRequired
+          />
 
-          <Text style={styles.termsText}>
-            By signing up, I agree to Roomify's
-            <Text style={styles.boldText}> Terms of Service</Text> and
-            <Text style={styles.boldText}> Privacy Policy</Text>.
-          </Text>
+          <InputText label="Password" placeholder="At least 8 characters" value={password} onChangeText={setPassword} secureTextEntry isRequired />
 
-          <TouchableOpacity style={styles.signupButton} onPress={handleSignup}>
-            <Text style={styles.signupButtonText}>Create account</Text>
+          <TouchableOpacity style={[styles.signupButton, isLoading && { opacity: 0.8 }]} onPress={handleSignup} disabled={isLoading}>
+            {isLoading ? (
+              <CircularLoader size={20} strokeWidth={2.5} activeColor={Colors.white} />
+            ) : (
+              <Text style={styles.signupButtonText}>Create account</Text>
+            )}
           </TouchableOpacity>
         </View>
 

@@ -5,8 +5,8 @@ import { ROOMS, CATEGORIES } from "../../constants/MockData"
 import RoomCard from "../../components/RoomCard"
 import SearchHeader from "../../components/SearchHeader"
 import CategoryBar from "../../components/CategoryBar"
-import { useQuery } from "@/hooks/use-query"
-import { getPublicHotels } from "@/services/hotels"
+import { useQuery } from "../../hooks/use-query"
+import { getPublicHotels } from "../../services/hotels"
 
 export default function ExploreScreen() {
   const [activeCategory, setActiveCategory] = useState("Amazing Views")

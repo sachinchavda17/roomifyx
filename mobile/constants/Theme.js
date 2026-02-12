@@ -8,6 +8,7 @@ export const Colors = {
   background: "#FFFFFF",
   star: "#FFD700",
   border: "#EEEEEE",
+  red: "#FF0000",
 }
 
 export const Spacing = {

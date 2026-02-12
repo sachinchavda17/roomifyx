@@ -6,6 +6,7 @@ from app.features.rooms.routes import router as rooms_router
 from app.features.bookings.routes import router as bookings_router
 from app.features.dashboard.routes import router as dashboard_router
 from app.features.hotels.routes import router as hotels_router
+from app.features.users.routes import router as users_router
 
 app = FastAPI(title="RoomifyX API", version="1.0.0")
 
@@ -23,6 +24,8 @@ app.include_router(rooms_router)
 app.include_router(bookings_router)
 app.include_router(dashboard_router)
 app.include_router(hotels_router)
+app.include_router(users_router)
+
 
 @app.get("/")
 def health():

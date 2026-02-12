@@ -3,23 +3,32 @@ import { useState } from "react"
 import { useRouter, Link } from "expo-router"
 import { Ionicons } from "@expo/vector-icons"
 import { Colors, Spacing, Typography } from "../../constants/Theme"
-import { useMutation } from "@/hooks/use-mutation"
-import { login } from "@/services/auth"
+
+import { useMutation } from "../../hooks/use-mutation"
+import { login } from "../../services/auth"
 import { toast } from "sonner-native"
+import { useAuth } from "../../context/AuthContext"
+import InputText from "../../components/InputText"
+import { CircularLoader } from "../../components/molecules/circular-loader"
 
 export default function LoginScreen() {
+  const { login: handleAuthLogin } = useAuth()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const router = useRouter()
 
   const handleLogin = () => {
-    console.log("email", email, password)
+    if (!email || !password) {
+      toast.error("Please fill in all fields")
+      return
+    }
     mutate({ email, password })
   }
 
   const { isLoading, mutate } = useMutation({
     mutationFn: login,
-    onSuccess: () => {
+    onSuccess: async (data) => {
+      await handleAuthLogin(data.token)
       router.replace("/(tabs)")
     },
   })
@@ -33,29 +42,26 @@ export default function LoginScreen() {
         </View>
 
         <View style={styles.form}>
-          <View style={styles.inputContainer}>
-            <Text style={styles.label}>Email</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Enter your email"
-              value={email}
-              onChangeText={setEmail}
-              keyboardType="email-address"
-              autoCapitalize="none"
-            />
-          </View>
+          <InputText
+            label="Email"
+            placeholder="Enter your email"
+            value={email}
+            onChangeText={setEmail}
+            keyboardType="email-address"
+            autoCapitalize="none"
+          />
 
-          <View style={styles.inputContainer}>
-            <Text style={styles.label}>Password</Text>
-            <TextInput style={styles.input} placeholder="Enter your password" value={password} onChangeText={setPassword} secureTextEntry />
-          </View>
+          <InputText label="Password" placeholder="Enter your password" value={password} onChangeText={setPassword} secureTextEntry />
 
           <TouchableOpacity style={styles.forgotPassword}>
             <Text style={styles.forgotPasswordText}>Forgot password?</Text>
           </TouchableOpacity>
-
-          <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
-            <Text style={styles.loginButtonText}>Continue</Text>
+          <TouchableOpacity style={[styles.loginButton, isLoading && { opacity: 0.8 }]} onPress={handleLogin} disabled={isLoading}>
+            {isLoading ? (
+              <CircularLoader size={20} strokeWidth={2.5} activeColor={Colors.white} />
+            ) : (
+              <Text style={styles.loginButtonText}>Continue</Text>
+            )}
           </TouchableOpacity>
         </View>
 
