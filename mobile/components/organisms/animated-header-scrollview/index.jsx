@@ -154,6 +154,7 @@ export const AnimatedHeaderScrollView = memo(
             },
             headerBackgroundStylez,
           ]}
+          pointerEvents="none"
         >
           {Platform.OS !== "web" ? (
             <MaskedView
@@ -191,6 +192,7 @@ export const AnimatedHeaderScrollView = memo(
             },
             smallHeaderStyle,
           ]}
+          pointerEvents="box-none"
         >
           <View style={styles.fixedHeaderContent}>
             <View style={styles.fixedHeaderTextContainer}>

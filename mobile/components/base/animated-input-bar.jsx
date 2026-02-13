@@ -132,6 +132,10 @@ const AnimatedInput = memo(
     const [inputValue, setInputValue] = useState(value || "")
     const [currentIndex, setCurrentIndex] = useState(0)
 
+    useEffect(() => {
+      setInputValue(value || "")
+    }, [value])
+
     const blurProgress = useSharedValue(0)
 
     useEffect(() => {

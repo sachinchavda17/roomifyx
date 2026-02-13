@@ -15,24 +15,24 @@ router = APIRouter(prefix="/hotels", tags=["Hotels"])
 
 @router.post("/")
 def create_hotel_api(data: HotelCreate, user=Depends(require_role("owner"))):
-    return create_hotel(data, user["_id"])
+    return create_hotel(data, user["id"])
 
 
 @router.put("/{hotel_id}")
 def update_hotel_api(
     hotel_id: str, data: HotelUpdate, user=Depends(require_role("owner"))
 ):
-    return update_hotel(hotel_id, data, user["_id"])
+    return update_hotel(hotel_id, data, user["id"])
 
 
 @router.delete("/{hotel_id}")
 def delete_hotel_api(hotel_id: str, user=Depends(require_role("owner"))):
-    return delete_hotel(hotel_id, user["_id"])
+    return delete_hotel(hotel_id, user["id"])
 
 
 @router.get("/me")
 def my_hotels_api(user=Depends(require_role("owner"))):
-    return get_my_hotels(user["_id"])
+    return get_my_hotels(user["id"])
 
 
 @router.get("/public", tags=["Public"])

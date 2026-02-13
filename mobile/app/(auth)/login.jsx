@@ -10,6 +10,7 @@ import { toast } from "sonner-native"
 import { useAuth } from "../../context/AuthContext"
 import InputText from "../../components/InputText"
 import { CircularLoader } from "../../components/molecules/circular-loader"
+import AnimatedHeaderScrollview from "../../components/organisms/animated-header-scrollview"
 
 export default function LoginScreen() {
   const { login: handleAuthLogin } = useAuth()
@@ -35,12 +36,10 @@ export default function LoginScreen() {
 
   return (
     <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        <View style={styles.header}>
-          <Text style={styles.title}>Welcome back</Text>
-          <Text style={styles.subtitle}>Log in to your account to continue</Text>
-        </View>
-
+      <AnimatedHeaderScrollview largeTitle="Log in" subtitle="Welcome back! You've been missed."    headerBlurConfig={{
+        intensity: 20,
+        tint: "light",
+      }}>
         <View style={styles.form}>
           <InputText
             label="Email"
@@ -85,7 +84,7 @@ export default function LoginScreen() {
             </TouchableOpacity>
           </Link>
         </View>
-      </ScrollView>
+      </AnimatedHeaderScrollview>
     </KeyboardAvoidingView>
   )
 }
@@ -104,24 +103,8 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.white,
   },
-  scrollContent: {
-    padding: Spacing.lg,
-  },
-  header: {
-    marginTop: Spacing.xl,
-    marginBottom: Spacing.xl * 1.5,
-  },
-  title: {
-    fontSize: Typography.size.xxl,
-    fontWeight: Typography.weight.bold,
-    color: Colors.black,
-  },
-  subtitle: {
-    fontSize: Typography.size.md,
-    color: Colors.darkGray,
-    marginTop: Spacing.xs,
-  },
   form: {
+    marginTop: Spacing.md,
     marginBottom: Spacing.xl,
   },
   inputContainer: {

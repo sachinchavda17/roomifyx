@@ -8,6 +8,8 @@ import { signup } from "../../services/auth"
 import { toast } from "sonner-native"
 import InputText from "../../components/InputText"
 import { CircularLoader } from "../../components/molecules/circular-loader"
+// import { AnimatedHeaderScrollView } from "../../components/organisms/animated-header-scrollview"
+import AnimatedHeaderScrollview from "../../components/organisms/animated-header-scrollview"
 
 export default function SignupScreen() {
   const { login: handleAuthLogin } = useAuth()
@@ -37,12 +39,14 @@ export default function SignupScreen() {
 
   return (
     <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        <View style={styles.header}>
-          <Text style={styles.title}>Create an account</Text>
-          <Text style={styles.subtitle}>Join RoomifyX to manage your bookings</Text>
-        </View>
-
+      <AnimatedHeaderScrollview
+        largeTitle="Create an account"
+        subtitle="Join RoomifyX to manage your bookings."
+        headerBlurConfig={{
+          intensity: 20,
+          tint: "light",
+        }}
+      >
         <View style={styles.form}>
           <View style={styles.row}>
             <InputText
@@ -85,7 +89,7 @@ export default function SignupScreen() {
             </TouchableOpacity>
           </Link>
         </View>
-      </ScrollView>
+      </AnimatedHeaderScrollview>
     </KeyboardAvoidingView>
   )
 }
@@ -95,25 +99,9 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.white,
   },
-  scrollContent: {
-    padding: Spacing.lg,
-  },
-  header: {
-    marginTop: Spacing.xl,
-    marginBottom: Spacing.xl,
-  },
-  title: {
-    fontSize: Typography.size.xxl,
-    fontWeight: Typography.weight.bold,
-    color: Colors.black,
-  },
-  subtitle: {
-    fontSize: Typography.size.md,
-    color: Colors.darkGray,
-    marginTop: Spacing.xs,
-  },
+
   form: {
-    marginBottom: Spacing.xl,
+    marginBottom: Spacing.md,
   },
   row: {
     flexDirection: "row",

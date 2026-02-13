@@ -12,20 +12,21 @@ export default function AuthLayout() {
           fontWeight: "600",
         },
         headerShadowVisible: false,
-        headerTintColor: Colors.black,
+        // headerTintColor: Colors.black,
       }}
     >
       <Stack.Screen
         name="login"
         options={{
-          title: "Log in",
-          // headerLeft: () => null, // Optional: handle back navigation if needed
+          // title: "Log In",
+          headerShown: false,
         }}
       />
       <Stack.Screen
         name="signup"
         options={{
-          title: "Sign up",
+          // title: "Sign up",
+          headerShown: false,
         }}
       />
     </Stack>

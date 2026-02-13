@@ -8,6 +8,7 @@ from app.features.users.model import user_collection
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 
+
 # -------- AUTH --------
 def get_current_user(token: str = Depends(oauth2_scheme)):
     try:
@@ -21,23 +22,24 @@ def get_current_user(token: str = Depends(oauth2_scheme)):
         if not user:
             raise HTTPException(status_code=401, detail="User not found")
 
-        user["_id"] = str(user["_id"])
+        user["id"] = str(user["_id"])
+        user.pop("_id", None)
         user.pop("password", None)
         return user
 
     except JWTError:
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid or expired token"
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid or expired token"
         )
+
 
 # -------- ROLE --------
 def require_role(*roles: str):
     def checker(current_user=Depends(get_current_user)):
         if current_user["role"] not in roles:
             raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="Permission denied"
+                status_code=status.HTTP_403_FORBIDDEN, detail="Permission denied"
             )
         return current_user
+
     return checker

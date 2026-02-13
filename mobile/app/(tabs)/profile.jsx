@@ -1,4 +1,5 @@
-import { View, Text, StyleSheet, TouchableOpacity } from "react-native"
+import { View, Text, StyleSheet } from "react-native"
+import { TouchableOpacity } from "react-native-gesture-handler"
 import { Ionicons } from "@expo/vector-icons"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
 import { Colors, Spacing, Typography } from "../../constants/Theme"
@@ -8,11 +9,14 @@ import { useQuery } from "../../hooks/use-query"
 import { profile } from "../../services/user"
 import { AnimatedHeaderScrollView } from "../../components/organisms/animated-header-scrollview"
 import { Avatar } from "../../components/base/avatar"
+import { useRef, useMemo } from "react"
+import EditProfile from "../../components/EditProfile"
 
 export default function ProfileScreen() {
   const insets = useSafeAreaInsets()
   const { isAuthenticated, logout } = useAuth()
   const router = useRouter()
+  const editProfileRef = useRef(null)
 
   const { isLoading, data } = useQuery({
     queryKey: ["profile"],
@@ -25,67 +29,90 @@ export default function ProfileScreen() {
     router.push("/(auth)/login")
   }
 
-  const name = isAuthenticated && data ? `${data.first_name} ${data.last_name}` : "Guest"
+  const firstName = isAuthenticated && data ? data.first_name : ""
+  const lastName = isAuthenticated && data ? data.last_name : ""
+  const displayName = isAuthenticated && data ? `${firstName} ${lastName}` : "Guest"
   const email = isAuthenticated && data ? data.email : "Log in to view your profile"
+  const role = isAuthenticated && data ? data.role : "guest"
+
+  const userData = useMemo(
+    () => ({
+      firstName,
+      lastName,
+      email,
+      role,
+    }),
+    [firstName, lastName, email, role],
+  )
+
+  const openEditProfile = () => {
+    editProfileRef.current?.expand()
+  }
 
   return (
-    <AnimatedHeaderScrollView
-      largeTitle="Profile"
-      // subtitle={name}
-      headerBlurConfig={{
-        intensity: 20,
-        tint: "light",
-      }}
-    >
-      <View style={styles.content}>
-        <View style={styles.profileHeader}>
-          <Avatar image={{ name: name }} size={70} showBorder={true} borderColor={Colors.border} borderWidth={1} />
-          <View style={styles.profileInfo}>
-            <Text style={styles.userName}>{name}</Text>
-            <Text style={styles.userEmail}>{email}</Text>
-          </View>
-        </View>
-        {!isAuthenticated && (
-          <View style={styles.loginCard}>
-            <View style={styles.loginCardContent}>
-              <Text style={styles.loginCardTitle}>Log in for the best experience</Text>
-              <Text style={styles.loginCardSubtitle}>Access your bookings, saved places, and more from any device.</Text>
-              <Link href="/(auth)/login" asChild>
-                <TouchableOpacity style={styles.loginCardButton}>
-                  <Text style={styles.loginCardButtonText}>Log in</Text>
-                </TouchableOpacity>
-              </Link>
+    <>
+      <AnimatedHeaderScrollView
+        largeTitle="Profile"
+        headerBlurConfig={{
+          intensity: 20,
+          tint: "light",
+        }}
+      >
+        <View style={styles.content}>
+          <View style={styles.profileHeader}>
+            <Avatar image={{ name: displayName }} size={70} showBorder={true} borderColor={Colors.border} borderWidth={1} />
+            <View style={styles.profileInfo}>
+              <Text style={styles.userName}>{displayName}</Text>
+              <Text style={styles.userEmail}>{email}</Text>
             </View>
+            <TouchableOpacity style={styles.editButton} onPress={openEditProfile}>
+              <Ionicons name="pencil-outline" size={15} color={Colors.black} />
+            </TouchableOpacity>
           </View>
-        )}
+          {!isAuthenticated && (
+            <View style={styles.loginCard}>
+              <View style={styles.loginCardContent}>
+                <Text style={styles.loginCardTitle}>Log in for the best experience</Text>
+                <Text style={styles.loginCardSubtitle}>Access your bookings, saved places, and more from any device.</Text>
+                <Link href="/(auth)/login" asChild>
+                  <TouchableOpacity style={styles.loginCardButton}>
+                    <Text style={styles.loginCardButtonText}>Log in</Text>
+                  </TouchableOpacity>
+                </Link>
+              </View>
+            </View>
+          )}
 
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Account Settings</Text>
-          <MenuLink icon="person-outline" title="Personal info" />
-          <MenuLink icon="shield-checkmark-outline" title="Login & security" />
-          <MenuLink icon="card-outline" title="Payments & payouts" />
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Account Settings</Text>
+            {/* <MenuLink icon="person-outline" title="Personal info" /> */}
+            <MenuLink icon="shield-checkmark-outline" title="Login & security" />
+            <MenuLink icon="card-outline" title="Payments & payouts" />
+          </View>
+
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Hosting</Text>
+            <MenuLink icon="business-outline" title="Manage Hotels" href="/hotels" />
+            <MenuLink icon="add-circle-outline" title="List your space" />
+          </View>
+
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Legal</Text>
+            {/* <MenuLink icon="document-text-outline" title="Terms of Service" /> */}
+            {/* <MenuLink icon="shield-outline" title="Privacy Policy" /> */}
+            <MenuLink icon="settings-outline" title="Settings" />
+          </View>
+
+          {isAuthenticated && (
+            <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+              <Text style={styles.logoutText}>Log out</Text>
+            </TouchableOpacity>
+          )}
         </View>
+      </AnimatedHeaderScrollView>
 
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Hosting</Text>
-          <MenuLink icon="business-outline" title="Manage Hotels" href="/hotels" />
-          <MenuLink icon="add-circle-outline" title="List your space" />
-        </View>
-
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Legal</Text>
-          <MenuLink icon="document-text-outline" title="Terms of Service" />
-          <MenuLink icon="shield-outline" title="Privacy Policy" />
-          <MenuLink icon="settings-outline" title="Settings" />
-        </View>
-
-        {isAuthenticated && (
-          <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-            <Text style={styles.logoutText}>Log out</Text>
-          </TouchableOpacity>
-        )}
-      </View>
-    </AnimatedHeaderScrollView>
+      <EditProfile ref={editProfileRef} user={userData} />
+    </>
   )
 }
 
@@ -113,9 +140,10 @@ function MenuLink({ icon, title, href }) {
 
 const styles = StyleSheet.create({
   content: {
-    paddingBottom: Spacing.xl * 2,
+    paddingBottom: Spacing.xs,
   },
   profileHeader: {
+    position: "relative",
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: Colors.white,
@@ -218,6 +246,18 @@ const styles = StyleSheet.create({
     fontSize: Typography.size.md,
     fontWeight: Typography.weight.bold,
     color: "#FF385C",
+  },
+  editButton: {
+    position: "absolute",
+    // top: 5,
+    right: 5,
+    bottom:5,
+    padding: Spacing.sm,
+    borderRadius: 100,
+    backgroundColor: Colors.lightGray,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    zIndex: 999,
   },
 })
 
