@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from "react-native"
+import { View, Text, StyleSheet, TouchableOpacity } from "react-native"
 import { Ionicons } from "@expo/vector-icons"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
 import { Colors, Spacing, Typography } from "../../constants/Theme"
@@ -6,6 +6,8 @@ import { Link, useRouter } from "expo-router"
 import { useAuth } from "../../context/AuthContext"
 import { useQuery } from "../../hooks/use-query"
 import { profile } from "../../services/user"
+import { AnimatedHeaderScrollView } from "../../components/organisms/animated-header-scrollview"
+import { Avatar } from "../../components/base/avatar"
 
 export default function ProfileScreen() {
   const insets = useSafeAreaInsets()
@@ -18,30 +20,31 @@ export default function ProfileScreen() {
     enabled: isAuthenticated,
   })
 
-  console.log("data", data)
-
   const handleLogout = async () => {
     await logout()
-    router.replace("/(auth)/login")
+    router.push("/(auth)/login")
   }
 
-  return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
-      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        <Text style={styles.title}>Profile</Text>
+  const name = isAuthenticated && data ? `${data.first_name} ${data.last_name}` : "Guest"
+  const email = isAuthenticated && data ? data.email : "Log in to view your profile"
 
+  return (
+    <AnimatedHeaderScrollView
+      largeTitle="Profile"
+      // subtitle={name}
+      headerBlurConfig={{
+        intensity: 20,
+        tint: "light",
+      }}
+    >
+      <View style={styles.content}>
         <View style={styles.profileHeader}>
-          <View style={styles.avatar}>
-            <Ionicons name="person" size={40} color={Colors.white} />
-          </View>
-          <View style={{ flex: 1 }}>
-            <Text style={styles.userName}>
-              {data?.name} {data?.first_name} {data?.last_name} {isAuthenticated ? "" : "Guest"}
-            </Text>
-            <Text style={styles.userEmail}>{data?.email}</Text>
+          <Avatar image={{ name: name }} size={70} showBorder={true} borderColor={Colors.border} borderWidth={1} />
+          <View style={styles.profileInfo}>
+            <Text style={styles.userName}>{name}</Text>
+            <Text style={styles.userEmail}>{email}</Text>
           </View>
         </View>
-
         {!isAuthenticated && (
           <View style={styles.loginCard}>
             <View style={styles.loginCardContent}>
@@ -56,11 +59,23 @@ export default function ProfileScreen() {
           </View>
         )}
 
-        <View style={styles.menu}>
-          <MenuLink icon="business-outline" title="Manage Hotels" href="/hotels" />
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Account Settings</Text>
           <MenuLink icon="person-outline" title="Personal info" />
           <MenuLink icon="shield-checkmark-outline" title="Login & security" />
           <MenuLink icon="card-outline" title="Payments & payouts" />
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Hosting</Text>
+          <MenuLink icon="business-outline" title="Manage Hotels" href="/hotels" />
+          <MenuLink icon="add-circle-outline" title="List your space" />
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Legal</Text>
+          <MenuLink icon="document-text-outline" title="Terms of Service" />
+          <MenuLink icon="shield-outline" title="Privacy Policy" />
           <MenuLink icon="settings-outline" title="Settings" />
         </View>
 
@@ -69,99 +84,105 @@ export default function ProfileScreen() {
             <Text style={styles.logoutText}>Log out</Text>
           </TouchableOpacity>
         )}
-      </ScrollView>
-    </View>
+      </View>
+    </AnimatedHeaderScrollView>
   )
 }
 
 function MenuLink({ icon, title, href }) {
   const content = (
     <View style={styles.menuItem}>
-      <Ionicons name={icon} size={24} color={Colors.black} />
+      <View style={styles.menuIconContainer}>
+        <Ionicons name={icon} size={22} color={Colors.black} />
+      </View>
       <Text style={styles.menuText}>{title}</Text>
-      <Ionicons name="chevron-forward" size={20} color={Colors.darkGray} />
+      <Ionicons name="chevron-forward" size={18} color={Colors.darkGray} />
     </View>
   )
 
   if (href) {
     return (
       <Link href={href} asChild>
-        <TouchableOpacity>{content}</TouchableOpacity>
+        <TouchableOpacity activeOpacity={0.7}>{content}</TouchableOpacity>
       </Link>
     )
   }
 
-  return <TouchableOpacity>{content}</TouchableOpacity>
+  return <TouchableOpacity activeOpacity={0.7}>{content}</TouchableOpacity>
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: Colors.white,
-  },
   content: {
-    padding: Spacing.lg,
-  },
-  title: {
-    fontSize: Typography.size.xxl,
-    fontWeight: Typography.weight.bold,
-    marginBottom: Spacing.xl,
-    color: Colors.black,
+    paddingBottom: Spacing.xl * 2,
   },
   profileHeader: {
     flexDirection: "row",
     alignItems: "center",
+    backgroundColor: Colors.white,
+    padding: Spacing.md,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: Colors.border,
     marginBottom: Spacing.xl,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
+    elevation: 2,
   },
-  avatar: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: Colors.black,
-    justifyContent: "center",
-    alignItems: "center",
-    marginRight: Spacing.md,
+  profileInfo: {
+    marginLeft: Spacing.md,
+    flex: 1,
   },
   userName: {
     fontSize: Typography.size.lg,
-    fontWeight: Typography.weight.semibold,
+    fontWeight: Typography.weight.bold,
     color: Colors.black,
   },
   userEmail: {
     fontSize: Typography.size.sm,
     color: Colors.darkGray,
+    marginTop: 2,
   },
-  menu: {
+  section: {
     marginBottom: Spacing.xl,
+  },
+  sectionTitle: {
+    fontSize: Typography.size.md,
+    fontWeight: Typography.weight.bold,
+    color: Colors.black,
+    marginBottom: Spacing.sm,
+    marginLeft: 4,
   },
   loginCard: {
     backgroundColor: Colors.white,
-    borderRadius: 12,
+    borderRadius: 16,
     borderWidth: 1,
-    borderColor: Colors.lightGray,
+    borderColor: Colors.border,
     marginBottom: Spacing.xl,
-    padding: Spacing.md,
+    padding: Spacing.lg,
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    elevation: 4,
   },
   loginCardTitle: {
-    fontSize: Typography.size.md,
-    fontWeight: Typography.weight.semibold,
+    fontSize: Typography.size.lg,
+    fontWeight: Typography.weight.bold,
     color: Colors.black,
-    marginBottom: 4,
+    marginBottom: 8,
   },
   loginCardSubtitle: {
-    fontSize: Typography.size.sm,
+    fontSize: Typography.size.md,
     color: Colors.darkGray,
-    marginBottom: Spacing.md,
+    lineHeight: 22,
+    marginBottom: Spacing.lg,
   },
   loginCardButton: {
     backgroundColor: Colors.primary,
-    paddingVertical: 12,
-    borderRadius: 8,
+    paddingVertical: 14,
+    borderRadius: 10,
     alignItems: "center",
   },
   loginCardButtonText: {
@@ -173,26 +194,30 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     paddingVertical: Spacing.md,
-    borderBottomWidth: 0.5,
+    borderBottomWidth: 1,
     borderBottomColor: Colors.border,
+  },
+  menuIconContainer: {
+    width: 32,
+    alignItems: "center",
   },
   menuText: {
     flex: 1,
-    marginLeft: Spacing.md,
+    marginLeft: Spacing.sm,
     fontSize: Typography.size.md,
     color: Colors.black,
   },
   logoutButton: {
-    paddingVertical: Spacing.md,
+    marginTop: Spacing.md,
+    paddingVertical: 16,
     alignItems: "center",
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: Colors.black,
+    borderRadius: 12,
+    backgroundColor: "#FFF0F0",
   },
   logoutText: {
     fontSize: Typography.size.md,
-    fontWeight: Typography.weight.semibold,
-    color: Colors.black,
+    fontWeight: Typography.weight.bold,
+    color: "#FF385C",
   },
 })
 

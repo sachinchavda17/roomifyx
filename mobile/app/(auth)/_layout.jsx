@@ -19,7 +19,7 @@ export default function AuthLayout() {
         name="login"
         options={{
           title: "Log in",
-          headerLeft: () => null, // Optional: handle back navigation if needed
+          // headerLeft: () => null, // Optional: handle back navigation if needed
         }}
       />
       <Stack.Screen

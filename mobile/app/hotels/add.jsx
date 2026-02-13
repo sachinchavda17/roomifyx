@@ -14,7 +14,7 @@ export default function AddHotelScreen() {
     city: "",
     address: "",
     description: "",
-    images: ["https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&q=80&w=1000"], // Default mock image
+    images: [`https://picsum.photos/300/200`], // Unique random image
   })
 
   const { mutate, isLoading } = useMutation({
