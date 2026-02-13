@@ -1,20 +1,13 @@
 import { Tabs } from "expo-router"
 import { Ionicons } from "@expo/vector-icons"
 import { Colors } from "../../constants/Theme"
+import { CurvedBottomTabs } from "../../components/base/curved-bottom-tabs"
 
 export default function TabLayout() {
   return (
     <Tabs
+      tabBar={(props) => <CurvedBottomTabs {...props} />}
       screenOptions={{
-        tabBarActiveTintColor: Colors.primary,
-        tabBarInactiveTintColor: Colors.darkGray,
-        tabBarStyle: {
-          height: 60,
-          paddingBottom: 10,
-          paddingTop: 5,
-          borderTopWidth: 0.5,
-          borderTopColor: Colors.border,
-        },
         headerShown: false,
       }}
     >

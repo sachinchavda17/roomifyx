@@ -3,6 +3,7 @@ import { Keyboard, Platform, StyleSheet, Text, TouchableOpacity, View } from "re
 import Animated, { useSharedValue, useAnimatedStyle, withSpring } from "react-native-reanimated"
 import Svg, { Circle, Defs, LinearGradient as SvgGradient, Path, Stop } from "react-native-svg"
 import { calculateTabPosition, processGradient, VIEWPORT_HEIGHT, VIEWPORT_WIDTH } from "./helper"
+import { Colors } from "../../../constants/Theme"
 
 const FloatingButtonComponent = memo(({ icon, gradient, scale, shadow, badge }) => {
   const buttonSize = VIEWPORT_HEIGHT * scale
@@ -42,7 +43,7 @@ const FloatingButtonComponent = memo(({ icon, gradient, scale, shadow, badge }) 
             position: "absolute",
             top: -5,
             right: -10,
-            backgroundColor: "#ff4444",
+            backgroundColor: Colors.black,
             borderRadius: 10,
             minWidth: 20,
             height: 20,
@@ -53,7 +54,7 @@ const FloatingButtonComponent = memo(({ icon, gradient, scale, shadow, badge }) 
         >
           <Text
             style={{
-              color: "white",
+              color: Colors.primary,
               fontSize: 10,
               fontWeight: "bold",
             }}
@@ -128,7 +129,7 @@ const CurvedBottomTabsCore = memo(
     buttonScale = 6,
     activeColor = "#ffffff",
     inactiveColor = "#cccccc",
-    labelColor = "#cccccc",
+    labelColor = "#000",
     textSize = 12,
     fontFamily,
     hideWhenKeyboardShown = false,
@@ -312,7 +313,7 @@ const createStyles = ({ barHeight, textSize, fontFamily }) =>
     },
   })
 
-export const CurvedBottomTabs = memo(({ state, descriptors, navigation, gradients = ["#121212", "#1A1A1A"] }) => {
+export const CurvedBottomTabs = memo(({ state, descriptors, navigation, gradients = [Colors.darkGray, Colors.lightGray] }) => {
   const tabs = state.routes.map((route, index) => {
     const { options } = descriptors[route.key]
     const isActive = state.index === index
@@ -323,7 +324,7 @@ export const CurvedBottomTabs = memo(({ state, descriptors, navigation, gradient
       icon: options?.tabBarIcon
         ? options.tabBarIcon({
             focused: isActive,
-            color: isActive ? "#ffffff" : "#cccccc",
+            color: isActive ? Colors.white : Colors.black,
             size: 24,
           })
         : null,
