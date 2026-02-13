@@ -5,7 +5,7 @@ import { updateHotel, getPublicHotel } from "../../services/hotels"
 import { useState, useEffect } from "react"
 import { useRouter, Stack, useLocalSearchParams } from "expo-router"
 import { Colors, Spacing, Typography } from "../../constants/Theme"
-import { toast } from "sonner-native"
+import { Toast } from "../../components/molecules/toast"
 import InputText from "../../components/InputText"
 
 export default function EditHotelScreen() {
@@ -38,17 +38,17 @@ export default function EditHotelScreen() {
   const { mutate, isLoading: isUpdating } = useMutation({
     mutationFn: (data) => updateHotel({ id, data }),
     onSuccess: () => {
-      toast.success("Hotel updated successfully")
+      Toast.show("Hotel updated successfully", { type: "success" })
       router.back()
     },
     onError: (error) => {
-      toast.error(error.message || "Failed to update hotel")
+      Toast.show(error.message || "Failed to update hotel", { type: "error" })
     },
   })
 
   const handleSubmit = () => {
     if (!formData.name || !formData.city || !formData.address) {
-      toast.error("Please fill in required fields")
+      Toast.show("Please fill in required fields", { type: "error" })
       return
     }
     mutate(formData)

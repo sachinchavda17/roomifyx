@@ -5,7 +5,6 @@ import { useMutation } from "../../hooks/use-mutation"
 import { Ionicons } from "@expo/vector-icons"
 import { Link, useRouter, Stack } from "expo-router"
 import { Colors, Spacing, Typography } from "../../constants/Theme"
-import { toast } from "sonner-native"
 
 export default function MyHotelsScreen() {
   const router = useRouter()

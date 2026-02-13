@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet } from "react-native"
+import { View, Text, StyleSheet, Alert } from "react-native"
 import { TouchableOpacity } from "react-native-gesture-handler"
 import { Ionicons } from "@expo/vector-icons"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
@@ -6,14 +6,14 @@ import { Colors, Spacing, Typography } from "../../constants/Theme"
 import { Link, useRouter } from "expo-router"
 import { useAuth } from "../../context/AuthContext"
 import { useQuery } from "../../hooks/use-query"
-import { profile } from "../../services/user"
+import { useMutation } from "../../hooks/use-mutation"
+import { profile, deleteAccount } from "../../services/user"
 import { AnimatedHeaderScrollView } from "../../components/organisms/animated-header-scrollview"
 import { Avatar } from "../../components/base/avatar"
 import { useRef, useMemo } from "react"
 import EditProfile from "../../components/EditProfile"
 
 export default function ProfileScreen() {
-  const insets = useSafeAreaInsets()
   const { isAuthenticated, logout } = useAuth()
   const router = useRouter()
   const editProfileRef = useRef(null)
@@ -23,17 +23,40 @@ export default function ProfileScreen() {
     queryFn: profile,
     enabled: isAuthenticated,
   })
+  console.log("profile ", data)
+
+  const deleteMutation = useMutation({
+    mutationFn: deleteAccount,
+    onSuccess: async () => {
+      await logout()
+      router.replace("/(auth)/login")
+    },
+    showSuccess: true,
+  })
 
   const handleLogout = async () => {
     await logout()
-    router.push("/(auth)/login")
+    router.push("/(tabs)/index")
+  }
+
+  const handleDeleteAccount = () => {
+    Alert.alert("Delete Account", "Are you sure you want to delete your account? This action cannot be undone.", [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Delete",
+        style: "destructive",
+        onPress: () => {
+          deleteMutation.mutate()
+        },
+      },
+    ])
   }
 
   const firstName = isAuthenticated && data ? data.first_name : ""
   const lastName = isAuthenticated && data ? data.last_name : ""
   const displayName = isAuthenticated && data ? `${firstName} ${lastName}` : "Guest"
   const email = isAuthenticated && data ? data.email : "Log in to view your profile"
-  const role = isAuthenticated && data ? data.role : "guest"
+  const role = isAuthenticated && data ? data.role : "user"
 
   const userData = useMemo(
     () => ({
@@ -65,9 +88,11 @@ export default function ProfileScreen() {
               <Text style={styles.userName}>{displayName}</Text>
               <Text style={styles.userEmail}>{email}</Text>
             </View>
-            <TouchableOpacity style={styles.editButton} onPress={openEditProfile}>
-              <Ionicons name="pencil-outline" size={15} color={Colors.black} />
-            </TouchableOpacity>
+            {isAuthenticated && (
+              <TouchableOpacity style={styles.editButton} onPress={openEditProfile}>
+                <Ionicons name="pencil-outline" size={15} color={Colors.black} />
+              </TouchableOpacity>
+            )}
           </View>
           {!isAuthenticated && (
             <View style={styles.loginCard}>
@@ -104,9 +129,23 @@ export default function ProfileScreen() {
           </View>
 
           {isAuthenticated && (
-            <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-              <Text style={styles.logoutText}>Log out</Text>
-            </TouchableOpacity>
+            <>
+              <View style={styles.section}>
+                <Text style={[styles.sectionTitle, { color: Colors.primary }]}>Danger Zone</Text>
+                <TouchableOpacity onPress={handleDeleteAccount} disabled={deleteMutation.isLoading}>
+                  <View style={styles.menuItem}>
+                    <View style={styles.menuIconContainer}>
+                      <Ionicons name="trash-outline" size={22} color={Colors.primary} />
+                    </View>
+                    <Text style={[styles.menuText, { color: Colors.primary }]}>Delete Account</Text>
+                  </View>
+                </TouchableOpacity>
+              </View>
+
+              <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+                <Text style={styles.logoutText}>Log out</Text>
+              </TouchableOpacity>
+            </>
           )}
         </View>
       </AnimatedHeaderScrollView>
@@ -140,7 +179,7 @@ function MenuLink({ icon, title, href }) {
 
 const styles = StyleSheet.create({
   content: {
-    paddingBottom: Spacing.xs,
+    paddingBottom: 80,
   },
   profileHeader: {
     position: "relative",
@@ -251,7 +290,7 @@ const styles = StyleSheet.create({
     position: "absolute",
     // top: 5,
     right: 5,
-    bottom:5,
+    bottom: 5,
     padding: Spacing.sm,
     borderRadius: 100,
     backgroundColor: Colors.lightGray,

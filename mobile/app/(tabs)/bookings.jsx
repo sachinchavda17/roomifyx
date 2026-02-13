@@ -41,6 +41,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.white,
+    marginBottom: 50,
   },
   content: {
     padding: Spacing.lg,

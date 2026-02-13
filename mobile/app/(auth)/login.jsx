@@ -6,7 +6,7 @@ import { Colors, Spacing, Typography } from "../../constants/Theme"
 
 import { useMutation } from "../../hooks/use-mutation"
 import { login } from "../../services/auth"
-import { toast } from "sonner-native"
+import { Toast } from "../../components/molecules/toast"
 import { useAuth } from "../../context/AuthContext"
 import InputText from "../../components/InputText"
 import { CircularLoader } from "../../components/molecules/circular-loader"
@@ -20,7 +20,7 @@ export default function LoginScreen() {
 
   const handleLogin = () => {
     if (!email || !password) {
-      toast.error("Please fill in all fields")
+      Toast.show("Please fill in all fields", { type: "error" })
       return
     }
     mutate({ email, password })
@@ -36,10 +36,14 @@ export default function LoginScreen() {
 
   return (
     <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={styles.container}>
-      <AnimatedHeaderScrollview largeTitle="Log in" subtitle="Welcome back! You've been missed."    headerBlurConfig={{
-        intensity: 20,
-        tint: "light",
-      }}>
+      <AnimatedHeaderScrollview
+        largeTitle="Log in"
+        subtitle="Welcome back! You've been missed."
+        headerBlurConfig={{
+          intensity: 20,
+          tint: "light",
+        }}
+      >
         <View style={styles.form}>
           <InputText
             label="Email"

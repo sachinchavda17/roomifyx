@@ -1,12 +1,12 @@
 import { useEffect } from "react"
 import { useMutation as useTanstackMutation } from "@tanstack/react-query"
-import { toast } from "sonner-native"
+import { Toast } from "../components/molecules/toast"
 
 export const useMutation = ({ mutationFn, onSuccess = () => {}, onError = () => {}, showSuccess = true, showError = true }) => {
   const onMutationSuccess = (data, variables) => {
     if (data) onSuccess(data, variables)
     if (showSuccess) {
-      toast.success(variables?.message || data.msg || data.message || "Operation successful")
+      Toast.show(variables?.message || data.msg || data.message || "Operation successful", { type: "success" })
     }
   }
 
@@ -20,7 +20,7 @@ export const useMutation = ({ mutationFn, onSuccess = () => {}, onError = () => 
       console.log(error)
       const description = error?.msg || "Something went wrong !"
       if (showError) {
-        toast.error(description)
+        Toast.show(description, { type: "error" })
       }
       onError(error)
     }

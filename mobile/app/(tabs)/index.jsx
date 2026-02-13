@@ -7,6 +7,7 @@ import SearchHeader from "../../components/SearchHeader"
 import CategoryBar from "../../components/CategoryBar"
 import { useQuery } from "../../hooks/use-query"
 import { getPublicHotels } from "../../services/hotels"
+import { CircularLoader } from "../../components/molecules/circular-loader"
 
 export default function ExploreScreen() {
   const [activeCategory, setActiveCategory] = useState("Amazing Views")
@@ -23,13 +24,19 @@ export default function ExploreScreen() {
       <SearchHeader />
       <CategoryBar categories={CATEGORIES} activeCategory={activeCategory} onCategoryChange={setActiveCategory} />
 
-      <FlatList
-        data={data}
-        renderItem={({ item }) => <RoomCard item={item} />}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.listContent}
-        showsVerticalScrollIndicator={false}
-      />
+      {isLoading ? (
+        <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+          <CircularLoader />
+        </View>
+      ) : (
+        <FlatList
+          data={data}
+          renderItem={({ item }) => <RoomCard item={item} />}
+          keyExtractor={(item) => item.id}
+          contentContainerStyle={styles.listContent}
+          showsVerticalScrollIndicator={false}
+        />
+      )}
     </View>
   )
 }
@@ -38,6 +45,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.white,
+    marginBottom: 38,
   },
   listContent: {
     padding: Spacing.lg,

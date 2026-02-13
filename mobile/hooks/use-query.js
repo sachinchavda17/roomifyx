@@ -1,6 +1,6 @@
 import { useEffect } from "react"
 import { useQuery as useTanstackQuery } from "@tanstack/react-query"
-import { toast } from "sonner-native"
+import { Toast } from "../components/molecules/toast"
 
 export const useQuery = ({
   queryKey,
@@ -24,7 +24,7 @@ export const useQuery = ({
       onError(error)
       if (showError) {
         const description = error?.msg || "Something went wrong !"
-        toast.error(description)
+        Toast.show(description, { type: "error" })
       }
     }
   }, [isError])

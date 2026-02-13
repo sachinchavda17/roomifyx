@@ -4,7 +4,7 @@ import { createHotel } from "../../services/hotels"
 import { useState } from "react"
 import { useRouter, Stack } from "expo-router"
 import { Colors, Spacing, Typography } from "../../constants/Theme"
-import { toast } from "sonner-native"
+import { Toast } from "../../components/molecules/toast"
 import InputText from "../../components/InputText"
 
 export default function AddHotelScreen() {
@@ -20,17 +20,17 @@ export default function AddHotelScreen() {
   const { mutate, isLoading } = useMutation({
     mutationFn: createHotel,
     onSuccess: () => {
-      toast.success("Hotel created successfully")
+      Toast.show("Hotel created successfully", { type: "success" })
       router.back()
     },
     onError: (error) => {
-      toast.error(error.message || "Failed to create hotel")
+      Toast.show(error.message || "Failed to create hotel", { type: "error" })
     },
   })
 
   const handleSubmit = () => {
     if (!formData.name || !formData.city || !formData.address) {
-      toast.error("Please fill in required fields")
+      Toast.show("Please fill in required fields", { type: "error" })
       return
     }
     mutate(formData)

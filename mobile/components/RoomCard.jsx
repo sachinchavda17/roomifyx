@@ -2,13 +2,13 @@ import { View, Text, StyleSheet, TouchableOpacity } from "react-native"
 import { Image } from "expo-image"
 import { Ionicons } from "@expo/vector-icons"
 import { Colors, Typography, Spacing } from "../constants/Theme"
-import { toast } from "sonner-native"
+import { Toast } from "./molecules/toast"
 
 export default function RoomCard({ item }) {
   return (
-    <TouchableOpacity style={styles.card} onPress={() => toast.success(`Viewing ${item.title}`)} activeOpacity={0.9}>
+    <TouchableOpacity style={styles.card} onPress={() => Toast.show(`Viewing ${item.name}`, { type: "success" })} activeOpacity={0.9}>
       <View style={styles.imageContainer}>
-        <Image source={{ uri: item.image }} style={styles.image} contentFit="cover" transition={300} />
+        <Image source={{ uri: item.images[0] }} style={styles.image} contentFit="cover" transition={300} />
         <TouchableOpacity style={styles.heartButton}>
           <Ionicons name="heart-outline" size={24} color={Colors.white} />
         </TouchableOpacity>
@@ -16,16 +16,16 @@ export default function RoomCard({ item }) {
       <View style={styles.infoContainer}>
         <View style={styles.headerRow}>
           <Text style={styles.title} numberOfLines={1}>
-            {item.title}
+            {item.name}
           </Text>
           <View style={styles.ratingRow}>
             <Ionicons name="star" size={14} color={Colors.star} />
             <Text style={styles.ratingText}>{item.rating}</Text>
           </View>
         </View>
-        <Text style={styles.location}>{item.location}</Text>
+        <Text style={styles.location}>{item.address}</Text>
         <View style={styles.priceContainer}>
-          <Text style={styles.price}>${item.price}</Text>
+          <Text style={styles.price}>₹{item.price}</Text>
           <Text style={styles.night}> / night</Text>
         </View>
       </View>

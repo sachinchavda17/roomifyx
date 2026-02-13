@@ -5,7 +5,7 @@ import { Colors, Spacing, Typography } from "../../constants/Theme"
 import { useMutation } from "../../hooks/use-mutation"
 import { useAuth } from "../../context/AuthContext"
 import { signup } from "../../services/auth"
-import { toast } from "sonner-native"
+import { Toast } from "../../components/molecules/toast"
 import InputText from "../../components/InputText"
 import { CircularLoader } from "../../components/molecules/circular-loader"
 // import { AnimatedHeaderScrollView } from "../../components/organisms/animated-header-scrollview"
@@ -21,7 +21,7 @@ export default function SignupScreen() {
 
   const handleSignup = () => {
     if (!email || !password || !firstName || !lastName) {
-      toast.error("Please fill in all fields")
+      Toast.show("Please fill in all fields", { type: "error" })
       return
     }
     mutate({ email, password, first_name: firstName, last_name: lastName })
