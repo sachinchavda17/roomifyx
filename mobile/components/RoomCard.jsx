@@ -1,12 +1,27 @@
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native"
 import { Image } from "expo-image"
 import { Ionicons } from "@expo/vector-icons"
+import { useRouter } from "expo-router"
 import { Colors, Typography, Spacing } from "../constants/Theme"
-import { Toast } from "./molecules/toast"
 
 export default function RoomCard({ item }) {
+  const router = useRouter()
+
+  const handlePress = () => {
+    router.push({
+      pathname: `/hotel-detail/${item.id}`,
+      params: {
+        name: item.name,
+        price: item.price,
+        rating: item.rating,
+        address: item.address || item.city,
+        image: item.images?.[0] || "",
+      },
+    })
+  }
+
   return (
-    <TouchableOpacity style={styles.card} onPress={() => Toast.show(`Viewing ${item.name}`, { type: "success" })} activeOpacity={0.9}>
+    <TouchableOpacity style={styles.card} onPress={handlePress} activeOpacity={0.9}>
       <View style={styles.imageContainer}>
         <Image source={{ uri: item.images[0] }} style={styles.image} contentFit="cover" transition={300} />
         <TouchableOpacity style={styles.heartButton}>

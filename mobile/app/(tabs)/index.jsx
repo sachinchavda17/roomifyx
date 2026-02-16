@@ -45,7 +45,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.white,
-    marginBottom: 38,
+    // marginBottom: 38,
   },
   listContent: {
     padding: Spacing.lg,

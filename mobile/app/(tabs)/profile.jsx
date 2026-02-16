@@ -179,7 +179,7 @@ function MenuLink({ icon, title, href }) {
 
 const styles = StyleSheet.create({
   content: {
-    paddingBottom: 80,
+    // paddingBottom: 80,
   },
   profileHeader: {
     position: "relative",

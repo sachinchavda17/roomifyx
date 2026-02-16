@@ -260,7 +260,7 @@ const CurvedBottomTabsCore = memo(
 const createStyles = ({ barHeight, textSize, fontFamily }) =>
   StyleSheet.create({
     wrapper: {
-      position: "absolute",
+      position: "relative",
       bottom: 0,
       alignSelf: "center",
       backgroundColor: "transparent",
@@ -271,9 +271,11 @@ const createStyles = ({ barHeight, textSize, fontFamily }) =>
     },
     backgroundContainer: {
       position: "absolute",
+      top: 0,
       bottom: 0,
       zIndex: 20,
       width: "100%",
+      backgroundColor: "transparent",
     },
     tabWrapper: {
       flex: 1,
@@ -296,9 +298,10 @@ const createStyles = ({ barHeight, textSize, fontFamily }) =>
     },
     badgeContainer: {
       position: "absolute",
+
       top: -5,
       right: -10,
-      backgroundColor: "#ff4444",
+      backgroundColor: "#836060ff",
       borderRadius: 10,
       minWidth: 20,
       height: 20,
@@ -313,7 +316,7 @@ const createStyles = ({ barHeight, textSize, fontFamily }) =>
     },
   })
 
-export const CurvedBottomTabs = memo(({ state, descriptors, navigation, gradients = [Colors.darkGray, Colors.lightGray] }) => {
+export const CurvedBottomTabs = memo(({ state, descriptors, navigation, gradients = [Colors.lightGray, Colors.darkGray] }) => {
   const tabs = state.routes.map((route, index) => {
     const { options } = descriptors[route.key]
     const isActive = state.index === index
@@ -323,10 +326,10 @@ export const CurvedBottomTabs = memo(({ state, descriptors, navigation, gradient
       title: typeof options.tabBarLabel === "string" ? options.tabBarLabel : options.title !== undefined ? options.title : route.name,
       icon: options?.tabBarIcon
         ? options.tabBarIcon({
-            focused: isActive,
-            color: isActive ? Colors.white : Colors.black,
-            size: 24,
-          })
+          focused: isActive,
+          color: isActive ? Colors.white : Colors.black,
+          size: 24,
+        })
         : null,
       badge: typeof options.tabBarBadge === "number" ? options.tabBarBadge : undefined,
     }
