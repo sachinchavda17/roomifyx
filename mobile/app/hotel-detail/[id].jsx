@@ -227,7 +227,16 @@ export default function HotelDetailScreen() {
                     <Text style={styles.priceText}>₹{hotelData.price}</Text>
                     <Text style={styles.priceNight}> / night</Text>
                 </View>
-                <TouchableOpacity style={styles.reserveButton} activeOpacity={0.85}>
+                <TouchableOpacity style={styles.reserveButton} activeOpacity={0.85} onPress={() => router.push({
+                    pathname: `/reserve/${id}`,
+                    params: {
+                        name: hotelData.name,
+                        price: hotelData.price,
+                        rating: hotelData.rating,
+                        address: hotelData.address || hotelData.city,
+                        image: images[0] || "",
+                    },
+                })}>
                     <Text style={styles.reserveButtonText}>Reserve</Text>
                 </TouchableOpacity>
             </View>

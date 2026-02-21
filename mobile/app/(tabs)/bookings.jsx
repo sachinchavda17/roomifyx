@@ -1,19 +1,22 @@
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native"
 import { Ionicons } from "@expo/vector-icons"
-import { useSafeAreaInsets } from "react-native-safe-area-context"
 import { Colors, Spacing, Typography } from "../../constants/Theme"
 import { useAuth } from "../../context/AuthContext"
 import { Link } from "expo-router"
+import { AnimatedHeaderScrollView } from "../../components/organisms/animated-header-scrollview"
 
 export default function BookingsScreen() {
-  const insets = useSafeAreaInsets()
   const { isAuthenticated } = useAuth()
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
+    <AnimatedHeaderScrollView
+      largeTitle="Bookings"
+      headerBlurConfig={{
+        intensity: 20,
+        tint: "light",
+      }}
+    >
       <View style={styles.content}>
-        <Text style={styles.title}>Bookings</Text>
-
         {isAuthenticated ? (
           <View style={styles.emptyState}>
             <Ionicons name="calendar-outline" size={80} color={Colors.lightGray} />
@@ -33,31 +36,21 @@ export default function BookingsScreen() {
           </View>
         )}
       </View>
-    </View>
+    </AnimatedHeaderScrollView>
   )
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: Colors.white,
-    // marginBottom: 50,
-  },
   content: {
-    padding: Spacing.lg,
-    flex: 1,
-  },
-  title: {
-    fontSize: Typography.size.xxl,
-    fontWeight: Typography.weight.bold,
-    marginBottom: Spacing.xl,
-    color: Colors.black,
+    paddingBottom: 100,
+    minHeight: 400, // Ensure enough height for visual balance
   },
   emptyState: {
-    flex: 1,
     justifyContent: "center",
     alignItems: "center",
     paddingHorizontal: Spacing.xl,
+    paddingTop: Spacing.xxl,
+    marginTop: Spacing.lg,
   },
   emptyTitle: {
     fontSize: Typography.size.lg,

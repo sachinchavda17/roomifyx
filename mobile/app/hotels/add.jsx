@@ -1,4 +1,5 @@
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, ActivityIndicator } from "react-native"
+import { Ionicons } from "@expo/vector-icons"
 import { useMutation } from "../../hooks/use-mutation"
 import { createHotel } from "../../services/hotels"
 import { useState } from "react"
@@ -6,9 +7,12 @@ import { useRouter, Stack } from "expo-router"
 import { Colors, Spacing, Typography } from "../../constants/Theme"
 import { Toast } from "../../components/molecules/toast"
 import InputText from "../../components/InputText"
+import { useSafeAreaInsets } from "react-native-safe-area-context"
 
 export default function AddHotelScreen() {
   const router = useRouter()
+  const insets = useSafeAreaInsets()
+
   const [formData, setFormData] = useState({
     name: "",
     city: "",
@@ -16,6 +20,19 @@ export default function AddHotelScreen() {
     description: "",
     images: [`https://picsum.photos/300/200`], // Unique random image
   })
+  const [tempImage, setTempImage] = useState("")
+
+  const handleAddImage = () => {
+    if (!tempImage.trim()) return
+    setFormData({ ...formData, images: [...formData.images, tempImage.trim()] })
+    setTempImage("")
+  }
+
+  const handleRemoveImage = (index) => {
+    const newImages = [...formData.images]
+    newImages.splice(index, 1)
+    setFormData({ ...formData, images: newImages })
+  }
 
   const { mutate, isLoading } = useMutation({
     mutationFn: createHotel,
@@ -38,7 +55,6 @@ export default function AddHotelScreen() {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <Stack.Screen options={{ title: "Add New Hotel" }} />
 
       <InputText
         label="Hotel Name *"
@@ -64,6 +80,32 @@ export default function AddHotelScreen() {
         />
       </View>
 
+      <View style={styles.formGroup}>
+        <Text style={styles.label}>Images</Text>
+        <View style={[styles.row, { alignItems: "center" }]}>
+          <TextInput
+            style={[styles.input, { flex: 1, marginRight: Spacing.sm }]}
+            placeholder="Enter image URL"
+            value={tempImage}
+            onChangeText={setTempImage}
+            autoCapitalize="none"
+          />
+          <TouchableOpacity onPress={handleAddImage} style={styles.addButton}>
+            <Ionicons name="add" size={24} color={Colors.white} />
+          </TouchableOpacity>
+        </View>
+
+        {formData.images.map((img, index) => (
+          <View key={index} style={styles.imageItem}>
+            <Text numberOfLines={1} style={styles.imageText}>
+              {img}
+            </Text>
+            <TouchableOpacity onPress={() => handleRemoveImage(index)}>
+              <Ionicons name="trash-outline" size={20} color="red" />
+            </TouchableOpacity>
+          </View>
+        ))}
+      </View>
       <InputText
         label="Description"
         placeholder="Describe your hotel..."
@@ -123,6 +165,30 @@ const styles = StyleSheet.create({
   },
   disabledButton: {
     opacity: 0.7,
+  },
+  addButton: {
+    backgroundColor: Colors.primary,
+    padding: Spacing.sm,
+    borderRadius: 8,
+    alignItems: "center",
+    justifyContent: "center",
+    height: 50,
+    width: 50,
+  },
+  imageItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    backgroundColor: Colors.lightGray, // Ensure this color exists or use '#f5f5f5'
+    padding: Spacing.sm,
+    borderRadius: 8,
+    marginTop: Spacing.sm,
+  },
+  imageText: {
+    flex: 1,
+    marginRight: Spacing.sm,
+    fontSize: Typography.size.sm,
+    color: Colors.black,
   },
   submitButtonText: {
     color: Colors.white,

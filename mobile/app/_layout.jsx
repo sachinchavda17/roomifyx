@@ -21,6 +21,7 @@ export default function RootLayout() {
                 <Stack.Screen name="(auth)" />
                 <Stack.Screen name="hotels" options={{ headerShown: false }} />
                 <Stack.Screen name="hotel-detail" options={{ headerShown: false }} />
+                <Stack.Screen name="reserve" options={{ headerShown: false, presentation: "modal" }} />
               </Stack>
             </ToastProviderWithViewport>
           </GestureHandlerRootView>
