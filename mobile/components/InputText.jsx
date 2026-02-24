@@ -2,33 +2,66 @@ import { View, Text, StyleSheet } from "react-native"
 import { Colors, Spacing, Typography } from "../constants/Theme"
 import { Ionicons } from "@expo/vector-icons"
 import AnimatedInputBar from "./base/animated-input-bar"
+import { Controller } from "react-hook-form"
 
-const InputText = ({ label, value, onChangeText, placeholder, style, error, icon, isRequired, ...props }) => {
-  // Ensure placeholders is an array
+const InputText = ({
+  label,
+  placeholder,
+  style,
+  error,
+  icon,
+  isRequired,
+  control,
+  name,
+  rules,
+  value,
+  onChangeText,
+  inputWrapperStyle,
+  ...props
+}) => {
   const placeholders = [placeholder || "Type here..."]
+
+  // Auto-apply required rule when isRequired=true and no custom rules given
+  const resolvedRules = rules ?? (isRequired ? { required: "This field is required" } : undefined)
+
+  const renderInput = (fieldValue, fieldOnChange) => (
+    <AnimatedInputBar
+      placeholders={placeholders}
+      value={fieldValue ?? ""}
+      onChangeText={fieldOnChange}
+      animationInterval={3000}
+      selectionColor={Colors.primary}
+      containerStyle={styles.animatedContainer}
+      inputWrapperStyle={[styles.animatedInputWrapper, inputWrapperStyle]}
+      inputStyle={styles.input}
+      placeholderStyle={styles.placeholder}
+      {...props}
+    />
+  )
 
   return (
     <View style={[styles.container, style]}>
       {label && (
         <Text style={styles.label}>
           {label}
-          {isRequired && <Text style={styles.required}>*</Text>}
+          {isRequired && <Text style={styles.required}> *</Text>}
         </Text>
       )}
       <View style={[styles.inputWrapper, error && styles.inputError]}>
         {icon && <Ionicons name={icon} size={18} color={Colors.darkGray} style={styles.icon} />}
-        <AnimatedInputBar
-          placeholders={placeholders}
-          value={value}
-          onChangeText={onChangeText}
-          animationInterval={3000}
-          selectionColor={Colors.primary}
-          containerStyle={styles.animatedContainer}
-          inputWrapperStyle={styles.animatedInputWrapper}
-          inputStyle={styles.input}
-          placeholderStyle={styles.placeholder}
-          {...props}
-        />
+
+        {control && name ? (
+          // Mode 1: react-hook-form controlled
+          <Controller
+            control={control}
+            name={name}
+            rules={resolvedRules}
+            render={({ field: { onChange, value: fieldValue } }) => renderInput(fieldValue, onChange)}
+          />
+        ) : (
+          // Mode 2: uncontrolled / manual
+          renderInput(value, onChangeText)
+        )}
       </View>
       {error && <Text style={styles.errorText}>{error}</Text>}
     </View>
@@ -37,6 +70,7 @@ const InputText = ({ label, value, onChangeText, placeholder, style, error, icon
 
 const styles = StyleSheet.create({
   container: {
+    marginHorizontal: Spacing.xs,
     marginBottom: Spacing.md,
     width: "100%",
   },
@@ -48,7 +82,6 @@ const styles = StyleSheet.create({
   },
   required: {
     color: Colors.red,
-    marginLeft: Spacing.xs,
   },
   inputWrapper: {
     flexDirection: "row",

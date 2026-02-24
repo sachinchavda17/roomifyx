@@ -17,7 +17,7 @@ router = APIRouter(prefix="/rooms", tags=["Rooms"])
 # 🔒 Admin only
 @router.post("/", status_code=status.HTTP_201_CREATED)
 def create_room_api(data: RoomCreate, user=Depends(require_role("owner"))):
-    return create_room(data, user["_id"])
+    return create_room(data, user["id"])
 
 
 # 🔓 Admin + Staff
@@ -46,7 +46,7 @@ def update_room_status_api(
 
 @router.get("/hotel/{hotel_id}")
 def get_rooms_for_hotel_api(hotel_id: str, user=Depends(require_role("owner"))):
-    return get_rooms_by_hotel(hotel_id, user["_id"])
+    return get_rooms_by_hotel(hotel_id, user["id"])
 
 
 @router.get("/public/hotels/{hotel_id}/rooms", tags=["Public"])

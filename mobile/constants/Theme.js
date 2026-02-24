@@ -1,24 +1,27 @@
 export const Colors = {
-  primary: "#FF385C",
-  secondary: "#008489",
-  black: "#222222",
-  darkGray: "#717171",
-  lightGray: "#DDDDDD",
+  // primary: "#0F766E",      // Deep Teal (Trust + Premium)
+  primary: "#1E3A8A",      //  Deep Royal Blue
+  // secondary: "#F59E0B",    // Warm Amber (CTA buttons, highlights)
+  secondary: "#C8A951", // Soft Gold
+  black: "#1F2937",        // Slightly softer than pure black
+  darkGray: "#6B7280",
+  lightGray: "#E5E7EB",
   white: "#FFFFFF",
-  background: "#FFFFFF",
-  star: "#FFD700",
-  border: "#EEEEEE",
-  red: "#FF0000",
+  // background: "#FAFAFA",   // Soft background (not pure white)
+  background: "#F8F9FA",
+  star: "#FBBF24",         // Rating stars (warm gold)
+  border: "#E5E7EB",
+  red: "#EF4444",          // Error / Cancel
   gray: {
-    100: "#F5F5F5",
-    200: "#E5E5E5",
-    300: "#D4D4D4",
-    400: "#A3A3A3",
-    500: "#717171",
-    600: "#525252",
-    700: "#404040",
-    800: "#222222",
-    900: "#171717",
+    100: "#F9FAFB",
+    200: "#F3F4F6",
+    300: "#E5E7EB",
+    400: "#D1D5DB",
+    500: "#9CA3AF",
+    600: "#6B7280",
+    700: "#4B5563",
+    800: "#374151",
+    900: "#111827",
   },
 }
 

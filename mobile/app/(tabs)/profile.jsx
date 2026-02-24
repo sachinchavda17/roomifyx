@@ -36,7 +36,7 @@ export default function ProfileScreen() {
 
   const handleLogout = async () => {
     await logout()
-    router.push("/(tabs)/index")
+    // router.push("/(tabs)/")
   }
 
   const handleDeleteAccount = () => {

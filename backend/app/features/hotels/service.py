@@ -7,9 +7,15 @@ from app.features.hotels.model import hotel_collection
 def create_hotel(data, owner_id: str):
     hotel = {
         "name": data.name,
-        "description": data.description,
+        "hotel_type": data.hotel_type,
+        "contact_email": data.contact_email,
+        "contact_phone": data.contact_phone,
+        "country": data.country,
+        "state": data.state,
         "city": data.city,
+        "district": data.district,
         "address": data.address,
+        "description": data.description,
         "owner_id": ObjectId(owner_id),
         "is_active": True,
         "images": data.images,
@@ -20,9 +26,15 @@ def create_hotel(data, owner_id: str):
     return {
         "id": str(result.inserted_id),
         "name": hotel["name"],
-        "description": hotel["description"],
+        "hotel_type": hotel["hotel_type"],
+        "contact_email": hotel["contact_email"],
+        "contact_phone": hotel["contact_phone"],
+        "country": hotel["country"],
+        "state": hotel["state"],
         "city": hotel["city"],
+        "district": hotel["district"],
         "address": hotel["address"],
+        "description": hotel["description"],
         "owner_id": str(hotel["owner_id"]),
         "is_active": hotel["is_active"],
         "images": hotel["images"],
@@ -76,6 +88,13 @@ def get_my_hotels(owner_id: str):
                 "owner_id": str(hotel["owner_id"]),
                 "is_active": hotel["is_active"],
                 "images": hotel.get("images", []),
+                "hotel_type": hotel.get("hotel_type", ""),
+                "contact_email": hotel.get("contact_email", ""),
+                "contact_phone": hotel.get("contact_phone", ""),
+                "country": hotel.get("country", ""),
+                "state": hotel.get("state", ""),
+                "district": hotel.get("district", ""),
+                "address": hotel.get("address", ""),
             }
         )
 
@@ -100,6 +119,13 @@ def get_public_hotels(city: str | None = None):
             "images": hotel.get("images", []),
             "rating": 4.5,  # Mock rating
             "price": 100,  # Mock price
+            "hotel_type": hotel.get("hotel_type", ""),
+            "contact_email": hotel.get("contact_email", ""),
+            "contact_phone": hotel.get("contact_phone", ""),
+            "country": hotel.get("country", ""),
+            "state": hotel.get("state", ""),
+            "district": hotel.get("district", ""),
+            "address": hotel.get("address", ""),
         }
         for hotel in hotels
     ]
@@ -120,4 +146,11 @@ def get_public_hotel_by_id(hotel_id: str):
         "images": hotel.get("images", []),
         "rating": 4.5,
         "price": 100,
+        "hotel_type": hotel.get("hotel_type", ""),
+        "contact_email": hotel.get("contact_email", ""),
+        "contact_phone": hotel.get("contact_phone", ""),
+        "country": hotel.get("country", ""),
+        "state": hotel.get("state", ""),
+        "district": hotel.get("district", ""),
+        "address": hotel.get("address", ""),
     }

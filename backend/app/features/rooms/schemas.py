@@ -12,13 +12,11 @@ class RoomCreate(BaseModel):
     description: str = Field(..., min_length=20)
     room_type: RoomType
     price: float = Field(..., gt=0)
-    images: list[str] = Field(default_factory=list)
     location: str = Field(..., example="Mumbai, India")
+    images: list[str] = Field(default_factory=list)
     amenities: list[str] = Field(default_factory=list)
-    # status: RoomStatus = "available"
 
 
 class RoomUpdate(BaseModel):
     type: Optional[RoomType] = None
     price: Optional[float] = Field(default=None, gt=0)
-    # status: Optional[RoomStatus] = None

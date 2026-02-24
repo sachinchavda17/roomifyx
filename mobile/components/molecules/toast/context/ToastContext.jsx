@@ -4,7 +4,7 @@ const DEFAULT_TOAST_OPTIONS = {
   duration: 3000,
   type: "default",
   position: "top",
-  backgroundColor: "#262626",
+  // backgroundColor: "#262626",
   onClose: () => {},
   action: null,
   expandedContent: null,

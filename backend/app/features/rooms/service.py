@@ -6,36 +6,53 @@ from app.features.hotels.model import hotel_collection
 from app.features.bookings.model import booking_collection
 
 def create_room(data, owner_id: str):
-    hotel = hotel_collection.find_one({
-        "_id": ObjectId(data.hotel_id),
-        "owner_id": ObjectId(owner_id),
-        "is_active": True
-    })
+    try:
+        hotel = hotel_collection.find_one({
+            "_id": ObjectId(data.hotel_id),
+            "owner_id": ObjectId(owner_id),
+            "is_active": True
+        })
 
-    if not hotel:
+        if not hotel:
+            raise HTTPException(
+                status_code=403,
+                detail="You do not own this hotel or it does not exist"
+            )
+
+        room = {
+            "hotel_id": ObjectId(data.hotel_id),
+            "room_number": data.room_number,
+            "title": data.title,
+            "description": data.description,
+            "room_type": data.room_type,
+            "price": data.price,
+            "location": data.location,
+            "amenities": data.amenities,
+            "images": data.images,
+            "status": "available",
+        }
+
+        result = room_collection.insert_one(room)
+
+        return {
+            "id": str(result.inserted_id),
+            "hotel_id": str(room["hotel_id"]),
+            "room_number": room["room_number"],
+            "title": room["title"],
+            "description": room["description"],
+            "room_type": room["room_type"],
+            "price": room["price"],
+            "location": room["location"],
+            "amenities": room["amenities"],
+            "images": room["images"],
+            "status": room["status"],
+        }
+    except Exception as e:
+        print("\nerror create room ", e)
         raise HTTPException(
-            status_code=403,
-            detail="You do not own this hotel or it does not exist"
+            status_code=500,
+            detail=str(e)
         )
-
-    room = {
-        "hotel_id": ObjectId(data.hotel_id),
-        "room_number": data.room_number,
-        "room_type": data.room_type,
-        "price": data.price,
-        "status": "available"
-    }
-
-    result = room_collection.insert_one(room)
-
-    return {
-        "id": str(result.inserted_id),
-        "hotel_id": str(room["hotel_id"]),
-        "room_number": room["room_number"],
-        "room_type": room["room_type"],
-        "price": room["price"],
-        "status": room["status"]
-    }
 
 
 def get_all_rooms():

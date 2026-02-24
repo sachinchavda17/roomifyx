@@ -1,60 +1,32 @@
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, ActivityIndicator } from "react-native"
+import { View, Text, TouchableOpacity, ActivityIndicator, StyleSheet } from "react-native"
+import { useLocalSearchParams, useRouter } from "expo-router"
 import { useQuery } from "../../hooks/use-query"
 import { useMutation } from "../../hooks/use-mutation"
-import { updateHotel, getPublicHotel } from "../../services/hotels"
-import { useState, useEffect } from "react"
-import { useRouter, Stack, useLocalSearchParams } from "expo-router"
+import { getPublicHotel, updateHotel } from "../../services/hotels"
 import { Colors, Spacing, Typography } from "../../constants/Theme"
-import { Toast } from "../../components/molecules/toast"
-import InputText from "../../components/InputText"
+import HotelForm from "../../components/organisms/HotelForm"
+import { Ionicons } from "@expo/vector-icons"
+import { MULTI_ROOM_TYPES } from "../../constants/hotel"
 
 export default function EditHotelScreen() {
   const { id } = useLocalSearchParams()
   const router = useRouter()
-  const [formData, setFormData] = useState({
-    name: "",
-    city: "",
-    address: "",
-    description: "",
-  })
 
-  const { data: hotel, isLoading: isFetching } = useQuery({
+  const { data: hotel, isLoading } = useQuery({
     queryKey: ["hotel", id],
-    queryFn: () => getPublicHotel(id),
+    queryFn: getPublicHotel, // meybe change
+    payload: { id },
     enabled: !!id,
   })
 
-  useEffect(() => {
-    if (hotel) {
-      setFormData({
-        name: hotel.name,
-        city: hotel.city,
-        address: hotel.address,
-        description: hotel.description || "",
-      })
-    }
-  }, [hotel])
-
-  const { mutate, isLoading: isUpdating } = useMutation({
+  const { mutate, isPending } = useMutation({
     mutationFn: (data) => updateHotel({ id, data }),
     onSuccess: () => {
-      Toast.show("Hotel updated successfully", { type: "success" })
       router.back()
-    },
-    onError: (error) => {
-      Toast.show(error.message || "Failed to update hotel", { type: "error" })
     },
   })
 
-  const handleSubmit = () => {
-    if (!formData.name || !formData.city || !formData.address) {
-      Toast.show("Please fill in required fields", { type: "error" })
-      return
-    }
-    mutate(formData)
-  }
-
-  if (isFetching) {
+  if (isLoading || !hotel) {
     return (
       <View style={styles.center}>
         <ActivityIndicator size="large" color={Colors.primary} />
@@ -62,95 +34,91 @@ export default function EditHotelScreen() {
     )
   }
 
+  const isMultiRoom = MULTI_ROOM_TYPES.includes(hotel.hotel_type)
+
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <Stack.Screen options={{ title: "Edit Hotel" }} />
+    <HotelForm
+      isEdit
+      hotel={hotel}
+      isLoading={isPending}
+      onSubmit={(data) => mutate(data)}
+      footerContent={
+        isMultiRoom ? (
+          <View style={styles.manageRoomsSection}>
+            {/* Divider */}
+            <View style={styles.divider}>
+              <View style={styles.dividerLine} />
+              <Text style={styles.dividerText}>Rooms</Text>
+              <View style={styles.dividerLine} />
+            </View>
 
-      <InputText label="Hotel Name *" value={formData.name} onChangeText={(text) => setFormData({ ...formData, name: text })} />
+            <Text style={styles.manageRoomsHint}>This is a multi-room property. You can add or update its rooms below.</Text>
 
-      <View style={styles.row}>
-        <InputText
-          label="City *"
-          value={formData.city}
-          onChangeText={(text) => setFormData({ ...formData, city: text })}
-          style={{ flex: 1, marginRight: Spacing.sm }}
-        />
-        <InputText
-          label="Address *"
-          value={formData.address}
-          onChangeText={(text) => setFormData({ ...formData, address: text })}
-          style={{ flex: 1, marginLeft: Spacing.sm }}
-        />
-      </View>
-
-      <InputText
-        label="Description"
-        multiline
-        numberOfLines={4}
-        textAlignVertical="top"
-        value={formData.description}
-        onChangeText={(text) => setFormData({ ...formData, description: text })}
-        inputWrapperStyle={{ height: 120, minHeight: 120 }}
-      />
-
-      <TouchableOpacity style={[styles.submitButton, isUpdating && styles.disabledButton]} onPress={handleSubmit} disabled={isUpdating}>
-        {isUpdating ? <ActivityIndicator color={Colors.white} /> : <Text style={styles.submitButtonText}>Update Hotel</Text>}
-      </TouchableOpacity>
-    </ScrollView>
+            <TouchableOpacity
+              style={styles.manageRoomsButton}
+              activeOpacity={0.8}
+              onPress={() =>
+                router.push({
+                  pathname: "/hotels/add-room",
+                  params: { hotel_id: id },
+                })
+              }
+            >
+              <Ionicons name="bed-outline" size={20} color={Colors.white} style={{ marginRight: Spacing.sm }} />
+              <Text style={styles.manageRoomsText}>Add / Manage Rooms</Text>
+              <Ionicons name="chevron-forward" size={18} color={Colors.white} style={{ marginLeft: "auto" }} />
+            </TouchableOpacity>
+          </View>
+        ) : null
+      }
+    />
   )
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: Colors.white,
-  },
-  content: {
-    padding: Spacing.lg,
-  },
   center: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
   },
-  formGroup: {
-    marginBottom: Spacing.lg,
+  manageRoomsSection: {
+    marginTop: Spacing.lg,
   },
-  row: {
+  divider: {
     flexDirection: "row",
+    alignItems: "center",
+    marginBottom: Spacing.md,
   },
-  label: {
+  dividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: Colors.lightGray,
+  },
+  dividerText: {
+    marginHorizontal: Spacing.sm,
     fontSize: Typography.size.sm,
     fontWeight: Typography.weight.semibold,
-    color: Colors.black,
-    marginBottom: Spacing.xs,
+    color: Colors.darkGray,
+    textTransform: "uppercase",
+    letterSpacing: 1,
   },
-  input: {
-    borderWidth: 1,
-    borderColor: Colors.lightGray,
-    borderRadius: 8,
-    padding: Spacing.md,
-    fontSize: Typography.size.md,
-    color: Colors.black,
-    backgroundColor: Colors.white,
+  manageRoomsHint: {
+    fontSize: Typography.size.sm,
+    color: Colors.darkGray,
+    marginBottom: Spacing.md,
+    lineHeight: 20,
   },
-  textArea: {
-    height: 100,
-  },
-  submitButton: {
-    backgroundColor: Colors.primary,
-    padding: Spacing.md,
-    borderRadius: 8,
+  manageRoomsButton: {
+    flexDirection: "row",
     alignItems: "center",
-    marginTop: Spacing.md,
+    backgroundColor: Colors.secondary,
+    paddingVertical: Spacing.md,
+    paddingHorizontal: Spacing.lg,
+    borderRadius: 12,
   },
-  disabledButton: {
-    opacity: 0.7,
-  },
-  submitButtonText: {
+  manageRoomsText: {
     color: Colors.white,
-    fontWeight: Typography.weight.bold,
     fontSize: Typography.size.md,
+    fontWeight: Typography.weight.semibold,
   },
 })
-

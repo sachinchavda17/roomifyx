@@ -17,8 +17,6 @@ export default function ExploreScreen() {
     queryFn: getPublicHotels,
   })
 
-  console.log("data", data)
-
   return (
     <View style={styles.container}>
       <SearchHeader />
