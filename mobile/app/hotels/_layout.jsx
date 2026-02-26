@@ -28,9 +28,7 @@ export default function HotelsLayout() {
         }}
       />
       <Stack.Screen name="add" options={{ title: "Add Hotel" }} />
-      <Stack.Screen name="add-room" options={{ title: "Add Rooms" }} />
       <Stack.Screen name="[id]" options={{ title: "Edit Hotel" }} />
     </Stack>
   )
 }
-

@@ -1,4 +1,4 @@
-import { View, Text, TouchableOpacity, ActivityIndicator, StyleSheet } from "react-native"
+import { View, Text, ActivityIndicator, StyleSheet } from "react-native"
 import { useLocalSearchParams, useRouter } from "expo-router"
 import { useQuery } from "../../hooks/use-query"
 import { useMutation } from "../../hooks/use-mutation"
@@ -7,26 +7,30 @@ import { Colors, Spacing, Typography } from "../../constants/Theme"
 import HotelForm from "../../components/organisms/HotelForm"
 import { Ionicons } from "@expo/vector-icons"
 import { MULTI_ROOM_TYPES } from "../../constants/hotel"
+import Button from "../../components/base/button"
 
 export default function EditHotelScreen() {
   const { id } = useLocalSearchParams()
   const router = useRouter()
 
-  const { data: hotel, isLoading } = useQuery({
+  const { data, isLoading } = useQuery({
     queryKey: ["hotel", id],
     queryFn: getPublicHotel, // meybe change
     payload: { id },
     enabled: !!id,
   })
 
+  const payload = { payload: data, id }
   const { mutate, isPending } = useMutation({
-    mutationFn: (data) => updateHotel({ id, data }),
+    mutationFn: updateHotel,
+    payload,
     onSuccess: () => {
-      router.back()
+      const isMultiRoom = MULTI_ROOM_TYPES.includes(data?.hotel_type)
+      if (!isMultiRoom) router.back()
     },
   })
 
-  if (isLoading || !hotel) {
+  if (isLoading || !data) {
     return (
       <View style={styles.center}>
         <ActivityIndicator size="large" color={Colors.primary} />
@@ -34,43 +38,42 @@ export default function EditHotelScreen() {
     )
   }
 
-  const isMultiRoom = MULTI_ROOM_TYPES.includes(hotel.hotel_type)
+  const handleSubmit = (data, images) => mutate({ ...data, images })
+
+  const RoomManageButton = () => {
+    return (
+      <View style={styles.manageRoomsSection}>
+        {/* Divider */}
+        <View style={styles.divider}>
+          <View style={styles.dividerLine} />
+          <Text style={styles.dividerText}>Rooms</Text>
+          <View style={styles.dividerLine} />
+        </View>
+
+        <Text style={styles.manageRoomsHint}>This is a multi-room property. You can add or update its rooms below.</Text>
+
+        <Button
+          onPress={() => router.push({ pathname: "/rooms", params: { hotel_id: id } })}
+          backgroundColor={Colors.secondary}
+          width="100%"
+          height={50}
+          borderRadius={12}
+        >
+          <Ionicons name="bed-outline" size={20} color={Colors.white} style={{ marginRight: Spacing.sm }} />
+          <Text style={styles.manageRoomsText}>Manage Rooms</Text>
+          <Ionicons name="chevron-forward" size={18} color={Colors.white} style={{ marginLeft: "auto" }} />
+        </Button>
+      </View>
+    )
+  }
 
   return (
     <HotelForm
       isEdit
-      hotel={hotel}
+      defaultValues={data}
       isLoading={isPending}
-      onSubmit={(data) => mutate(data)}
-      footerContent={
-        isMultiRoom ? (
-          <View style={styles.manageRoomsSection}>
-            {/* Divider */}
-            <View style={styles.divider}>
-              <View style={styles.dividerLine} />
-              <Text style={styles.dividerText}>Rooms</Text>
-              <View style={styles.dividerLine} />
-            </View>
-
-            <Text style={styles.manageRoomsHint}>This is a multi-room property. You can add or update its rooms below.</Text>
-
-            <TouchableOpacity
-              style={styles.manageRoomsButton}
-              activeOpacity={0.8}
-              onPress={() =>
-                router.push({
-                  pathname: "/hotels/add-room",
-                  params: { hotel_id: id },
-                })
-              }
-            >
-              <Ionicons name="bed-outline" size={20} color={Colors.white} style={{ marginRight: Spacing.sm }} />
-              <Text style={styles.manageRoomsText}>Add / Manage Rooms</Text>
-              <Ionicons name="chevron-forward" size={18} color={Colors.white} style={{ marginLeft: "auto" }} />
-            </TouchableOpacity>
-          </View>
-        ) : null
-      }
+      onSubmit={handleSubmit}
+      footerContent={MULTI_ROOM_TYPES.includes(data?.hotel_type) ? <RoomManageButton /> : null}
     />
   )
 }
@@ -107,14 +110,6 @@ const styles = StyleSheet.create({
     color: Colors.darkGray,
     marginBottom: Spacing.md,
     lineHeight: 20,
-  },
-  manageRoomsButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: Colors.secondary,
-    paddingVertical: Spacing.md,
-    paddingHorizontal: Spacing.lg,
-    borderRadius: 12,
   },
   manageRoomsText: {
     color: Colors.white,

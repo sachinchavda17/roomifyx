@@ -1,4 +1,4 @@
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, ActivityIndicator, KeyboardAvoidingView, Platform } from "react-native"
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, KeyboardAvoidingView, Platform } from "react-native"
 import { Ionicons } from "@expo/vector-icons"
 import { useState, useEffect } from "react"
 import { useForm, Controller } from "react-hook-form"
@@ -6,32 +6,31 @@ import { Colors, Spacing, Typography } from "../../constants/Theme"
 import InputText from "../InputText"
 import BottomSheetSelect from "../BottomSheetSelect"
 import { HOTEL_TYPES } from "../../constants/hotel"
+import SpinButton from "../micro-interactions/spin-button"
+import Button from "../base/button"
 
-export default function HotelForm({
-  hotel,
-  onSubmit,
-  isLoading = false,
-  submitLabel,
-  isEdit = false,
-  footerContent = null,
-}) {
+export default function HotelForm({ defaultValues = null, onSubmit, isLoading = false, submitLabel, isEdit = false, footerContent = null }) {
   const {
     control,
     handleSubmit,
-    formState: { errors },
+    formState: { errors, isValid },
     watch,
     reset,
-  } = useForm({ hotel })
+  } = useForm({ defaultValues: defaultValues ?? {}, mode: "onChange" })
 
-  console.log("\n\n--hotel", hotel)
+  console.log("\n\n--hotel", defaultValues)
 
   useEffect(() => {
-    reset(hotel)
-  }, [hotel])
+    if (!defaultValues || Object.keys(defaultValues).length === 0) return
+    reset(defaultValues)
+    if (defaultValues.images?.length) {
+      setImages(defaultValues.images)
+    }
+  }, [defaultValues])
 
   const hotel_type = watch("hotel_type")
   console.log("\n\n--hotel_type", hotel_type)
-  
+
   const isMultiRoom = hotel_type === "hotel" || hotel_type === "resort"
 
   const [images, setImages] = useState(["https://picsum.photos/300/200"])
@@ -53,10 +52,10 @@ export default function HotelForm({
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : "height"}>
       <ScrollView style={styles.container} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
         {/* Hotel Name */}
-        <InputText label="Hotel Name" placeholder="e.g. Grand Resort" control={control} name="name" isRequired error={errors.name?.message} />
+        <InputText label="Hotel Name" placeholder="Grand Resort" control={control} name="name" isRequired error={errors.name?.message} />
 
         {/* Hotel Type + Contact Phone — hidden on edit (type cannot change) */}
-        {!isEdit && (
+        {/* {!isEdit && ( */}
           <View style={styles.row}>
             <Controller
               control={control}
@@ -78,7 +77,7 @@ export default function HotelForm({
             />
             <InputText
               label="Contact Phone"
-              placeholder="+91 98765 43210"
+              placeholder="+91 12345 12345"
               control={control}
               name="contact_phone"
               isRequired
@@ -87,7 +86,7 @@ export default function HotelForm({
               keyboardType="phone-pad"
             />
           </View>
-        )}
+        {/* )} */}
 
         {/* Contact Email */}
         <InputText
@@ -105,7 +104,7 @@ export default function HotelForm({
         <View style={styles.row}>
           <InputText
             label="Country"
-            placeholder="e.g. India"
+            placeholder="India"
             control={control}
             name="country"
             isRequired
@@ -114,7 +113,7 @@ export default function HotelForm({
           />
           <InputText
             label="State"
-            placeholder="e.g. Maharashtra"
+            placeholder="Maharashtra"
             control={control}
             name="state"
             isRequired
@@ -127,7 +126,7 @@ export default function HotelForm({
         <View style={styles.row}>
           <InputText
             label="District"
-            placeholder="e.g. Mumbai"
+            placeholder="Mumbai"
             control={control}
             name="district"
             isRequired
@@ -136,7 +135,7 @@ export default function HotelForm({
           />
           <InputText
             label="Full Address"
-            placeholder="e.g. 123 Main St"
+            placeholder="123 Main St"
             control={control}
             name="address"
             isRequired
@@ -153,7 +152,7 @@ export default function HotelForm({
           name="description"
           error={errors.description?.message}
           multiline
-          numberOfLines={4}
+          numberOfLines={3}
           textAlignVertical="top"
           inputWrapperStyle={{ height: 120, minHeight: 120 }}
         />
@@ -188,14 +187,38 @@ export default function HotelForm({
         </View>
 
         {/* Submit */}
-        <TouchableOpacity
+        {/* <TouchableOpacity
           style={[styles.submitButton, isLoading && styles.disabledButton]}
           onPress={handleSubmit((data) => onSubmit(data, images))}
           disabled={isLoading}
         >
           {isLoading ? <ActivityIndicator color={Colors.white} /> : <Text style={styles.submitButtonText}>{buttonLabel}</Text>}
-        </TouchableOpacity>
+        </TouchableOpacity> */}
 
+        <Button
+          onPress={handleSubmit((data) => onSubmit(data, images))}
+          isLoading={isLoading}
+          disabled={isLoading || !isValid}
+          backgroundColor={Colors.primary}
+          loadingTextBackgroundColor={Colors.primary}
+          loadingText="Saving..."
+          loadingTextColor={Colors.white}
+          width="100%"
+          height={50}
+          borderRadius={12}
+          showLoadingIndicator
+        >
+          <Text style={styles.submitButtonText}>{buttonLabel}</Text>
+        </Button>
+        {/* <SpinButton
+          idleText={buttonLabel}
+          activeText="Saving..."
+          controlled
+          isActive={isLoading}
+          disabled={isLoading || !isValid}
+          buttonStyle={{ paddingHorizontal: 40, paddingVertical: 14, borderRadius: 12 }}
+          onPress={handleSubmit((data) => onSubmit(data, images))}
+        /> */}
         {/* Extra content injected by parent (e.g. Manage Rooms button) */}
         {footerContent}
       </ScrollView>

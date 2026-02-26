@@ -1,12 +1,14 @@
 from fastapi import APIRouter, Depends, status
 
-from app.features.rooms.schemas import RoomCreate, RoomUpdate
+from app.features.rooms.schemas import RoomCreate, RoomUpdate, RoomResponse
 from app.features.rooms.service import (
     create_room,
     get_all_rooms,
+    get_room_by_id,
     update_room,
     update_room_status,
     get_rooms_by_hotel,
+    delete_room,
 )
 from app.core.dependencies import require_role
 from app.features.rooms.service import get_public_rooms
@@ -28,12 +30,24 @@ def get_rooms_api(
     return get_all_rooms()
 
 
-# 🔒 Admin only
+# 🔒 Owner only
+@router.get("/{room_id}")
+def get_room_api(room_id: str, user=Depends(require_role("owner"))):
+    return get_room_by_id(room_id, user["id"])
+
+
+# 🔒 Owner only
 @router.put("/{room_id}")
 def update_room_api(
-    room_id: str, room: RoomUpdate, user=Depends(require_role("admin"))
+    room_id: str, room: RoomUpdate, user=Depends(require_role("owner"))
 ):
     return update_room(room_id, room)
+
+
+# 🔒 Owner only
+@router.delete("/{room_id}")
+def delete_room_api(room_id: str, user=Depends(require_role("owner"))):
+    return delete_room(room_id, user["id"])
 
 
 # 🔓 Admin + Staff

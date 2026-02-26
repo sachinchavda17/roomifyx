@@ -2,7 +2,7 @@ import { useEffect } from "react"
 import { useMutation as useTanstackMutation } from "@tanstack/react-query"
 import { Toast } from "../components/molecules/toast"
 
-export const useMutation = ({ mutationFn, onSuccess = () => {}, onError = () => {}, showSuccess = true, showError = true }) => {
+export const useMutation = ({ mutationFn, onSuccess = () => { }, onError = () => { }, showSuccess = true, showError = true }) => {
   const onMutationSuccess = (data, variables) => {
     if (data) onSuccess(data, variables)
     if (showSuccess) {

@@ -73,6 +73,37 @@ def get_all_rooms():
         for room in rooms
     ]
 
+def get_room_by_id(room_id: str, owner_id: str):
+    try:
+        room = room_collection.find_one({"_id": ObjectId(room_id)})
+        if not room:
+            raise HTTPException(status_code=404, detail="Room not found")
+
+        hotel = hotel_collection.find_one({
+            "_id": room["hotel_id"],
+            "owner_id": ObjectId(owner_id)
+        })
+        if not hotel:
+            raise HTTPException(status_code=403, detail="Access denied")
+
+        return {
+            "id": str(room["_id"]),
+            "hotel_id": str(room["hotel_id"]),
+            "room_number": room["room_number"],
+            "title": room["title"],
+            "description": room["description"],
+            "room_type": room["room_type"],
+            "price": room["price"],
+            "location": room["location"],
+            "amenities": room.get("amenities", []),
+            "images": room.get("images", []),
+            "status": room["status"],
+        }
+    except Exception as e:
+        print("\nerror get_room_by_id", e)
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 def update_room(room_id: str, room_data):
     result = room_collection.update_one(
         {"_id": ObjectId(room_id)},
@@ -84,6 +115,25 @@ def update_room(room_id: str, room_data):
             detail="Room not found"
         )
     return {"message": "Room updated successfully"}
+
+def delete_room(room_id: str, owner_id: str):
+    try:
+        room = room_collection.find_one({"_id": ObjectId(room_id)})
+        if not room:
+            raise HTTPException(status_code=404, detail="Room not found")
+
+        hotel = hotel_collection.find_one({
+            "_id": room["hotel_id"],
+            "owner_id": ObjectId(owner_id)
+        })
+        if not hotel:
+            raise HTTPException(status_code=403, detail="Access denied")
+
+        room_collection.delete_one({"_id": ObjectId(room_id)})
+        return {"message": "Room deleted successfully"}
+    except Exception as e:
+        print("\nerror delete_room", e)
+        raise HTTPException(status_code=500, detail=str(e))
 
 def update_room_status(room_id: str, status_value: str):
     result = room_collection.update_one(
@@ -98,26 +148,38 @@ def update_room_status(room_id: str, status_value: str):
     return {"message": "Room status updated"}
 
 def get_rooms_by_hotel(hotel_id: str, owner_id: str):
-    hotel = hotel_collection.find_one({
-        "_id": ObjectId(hotel_id),
-        "owner_id": ObjectId(owner_id)
-    })
+    try:
+        hotel = hotel_collection.find_one({
+            "_id": ObjectId(hotel_id),
+            "owner_id": ObjectId(owner_id)
+        })
 
-    if not hotel:
-        raise HTTPException(status_code=403, detail="Access denied")
+        if not hotel:
+            raise HTTPException(status_code=403, detail="Access denied")
 
-    rooms = room_collection.find({"hotel_id": ObjectId(hotel_id)})
+        rooms = room_collection.find({"hotel_id": ObjectId(hotel_id)})
+        print("all roooms", rooms)
 
-    return [
-        {
-            "id": str(room["_id"]),
-            "room_number": room["room_number"],
-            "room_type": room["room_type"],
-            "price": room["price"],
-            "status": room["status"]
-        }
-        for room in rooms
-    ]
+        return [
+            {
+                "id": str(room["_id"]),
+                "room_number": room["room_number"],
+                "room_type": room["room_type"],
+                "title": room["title"], # later change to name
+                "description": room["description"],
+                "price": room["price"],
+                "location": room["location"],
+                "amenities": room["amenities"],
+                "status": room["status"],
+                "images": room["images"],
+                # "is_active": hotel["is_active"],
+                "owner_id": str(hotel["owner_id"]),
+            }
+            for room in rooms
+        ]
+    except Exception as e:
+        print("\nerror get rooms by hotel ", e)
+        raise HTTPException(status_code=500, detail=str(e))
 
 def get_public_rooms(hotel_id: str):
     hotel = hotel_collection.find_one({

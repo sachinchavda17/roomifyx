@@ -1,0 +1,2 @@
+1. Validation should be in all Forms
+2. same hotel name can not be added

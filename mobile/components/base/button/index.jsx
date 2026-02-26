@@ -149,7 +149,11 @@ export const Button = memo(
         disabled={isLoading || disabled}
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}
-        style={({ pressed }) => [styles.pressable, Platform.OS === "ios" && pressed && styles.pressed]}
+        style={({ pressed }) => [
+          styles.pressable,
+          Platform.OS === "ios" && pressed && styles.pressed,
+          disabled && !isLoading && styles.disabledPressable,
+        ]}
         accessible={true}
         accessibilityRole="button"
         accessibilityState={{ disabled: isLoading || disabled }}
@@ -162,10 +166,13 @@ export const Button = memo(
 
 const styles = StyleSheet.create({
   pressable: {
-    alignSelf: "flex-start",
+    alignSelf: "stretch",
   },
   pressed: {
     opacity: 0.9,
+  },
+  disabledPressable: {
+    opacity: 0.45,
   },
   button: {
     justifyContent: "center",
