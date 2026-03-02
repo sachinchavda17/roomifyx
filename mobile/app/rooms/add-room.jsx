@@ -2,6 +2,7 @@ import { View, Text, StyleSheet } from "react-native"
 import { Ionicons } from "@expo/vector-icons"
 import { useLocalSearchParams, useRouter } from "expo-router"
 import { useState } from "react"
+import { useQueryClient } from "@tanstack/react-query"
 import { Colors, Spacing, Typography } from "../../constants/Theme"
 import { useMutation } from "../../hooks/use-mutation"
 import { createRoom } from "../../services/rooms"
@@ -11,17 +12,17 @@ import { TouchableOpacity } from "react-native"
 export default function AddRoomScreen() {
   const router = useRouter()
   const { hotel_id } = useLocalSearchParams()
+  const queryClient = useQueryClient()
 
   const [savedRooms, setSavedRooms] = useState([])
-  // key is used to fully reset RoomForm between adds
   const [formKey, setFormKey] = useState(0)
 
   const { mutate, isLoading } = useMutation({
     mutationFn: createRoom,
     onSuccess: (createdRoom) => {
       setSavedRooms((prev) => [...prev, createdRoom])
-      // Bump key to unmount/remount RoomForm — cleanest full reset
       setFormKey((k) => k + 1)
+      queryClient.invalidateQueries({ queryKey: ["hotel-rooms", hotel_id] })
     },
   })
 

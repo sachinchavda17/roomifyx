@@ -1,5 +1,6 @@
 import { View, Text, ActivityIndicator, StyleSheet } from "react-native"
 import { useLocalSearchParams, useRouter } from "expo-router"
+import { useQueryClient } from "@tanstack/react-query"
 import { useQuery } from "../../hooks/use-query"
 import { useMutation } from "../../hooks/use-mutation"
 import { getPublicHotel, updateHotel } from "../../services/hotels"
@@ -12,21 +13,21 @@ import Button from "../../components/base/button"
 export default function EditHotelScreen() {
   const { id } = useLocalSearchParams()
   const router = useRouter()
+  const queryClient = useQueryClient()
 
   const { data, isLoading } = useQuery({
     queryKey: ["hotel", id],
-    queryFn: getPublicHotel, // meybe change
+    queryFn: getPublicHotel,
     payload: { id },
     enabled: !!id,
   })
 
-  const payload = { payload: data, id }
-  const { mutate, isPending } = useMutation({
+  const { mutate, isLoading: isSaving } = useMutation({
     mutationFn: updateHotel,
-    payload,
     onSuccess: () => {
-      const isMultiRoom = MULTI_ROOM_TYPES.includes(data?.hotel_type)
-      if (!isMultiRoom) router.back()
+      queryClient.invalidateQueries({ queryKey: ["my-hotels"] })
+      queryClient.invalidateQueries({ queryKey: ["hotel", id] })
+      router.back()
     },
   })
 
@@ -38,7 +39,13 @@ export default function EditHotelScreen() {
     )
   }
 
-  const handleSubmit = (data, images) => mutate({ ...data, images })
+  const defaultValues = {
+    ...data,
+    price: data.price != null ? String(data.price) : "",
+    max_guests: data.max_guests != null ? String(data.max_guests) : "",
+  }
+
+  const handleSubmit = (formData, images) => mutate({ payload: { ...formData, images }, id })
 
   const RoomManageButton = () => {
     return (
@@ -70,8 +77,8 @@ export default function EditHotelScreen() {
   return (
     <HotelForm
       isEdit
-      defaultValues={data}
-      isLoading={isPending}
+      defaultValues={defaultValues}
+      isLoading={isSaving}
       onSubmit={handleSubmit}
       footerContent={MULTI_ROOM_TYPES.includes(data?.hotel_type) ? <RoomManageButton /> : null}
     />

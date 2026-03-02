@@ -2,6 +2,30 @@ from bson import ObjectId
 from fastapi import HTTPException, status
 
 from app.features.hotels.model import hotel_collection
+from app.features.rooms.model import room_collection
+
+
+def _serialize_hotel(hotel):
+    data = {
+        "id": str(hotel["_id"]),
+        "name": hotel["name"],
+        "hotel_type": hotel.get("hotel_type", ""),
+        "contact_email": hotel.get("contact_email", ""),
+        "contact_phone": hotel.get("contact_phone", ""),
+        "country": hotel.get("country", ""),
+        "state": hotel.get("state", ""),
+        "district": hotel.get("district", ""),
+        "address": hotel.get("address", ""),
+        "description": hotel.get("description"),
+        "owner_id": str(hotel["owner_id"]),
+        "is_active": hotel.get("is_active", True),
+        "images": hotel.get("images", []),
+        # Guest house / single-property fields
+        "price": hotel.get("price"),
+        "amenities": hotel.get("amenities", []),
+        "max_guests": hotel.get("max_guests"),
+    }
+    return data
 
 
 def create_hotel(data, owner_id: str):
@@ -12,33 +36,22 @@ def create_hotel(data, owner_id: str):
         "contact_phone": data.contact_phone,
         "country": data.country,
         "state": data.state,
-        "city": data.city,
         "district": data.district,
         "address": data.address,
         "description": data.description,
         "owner_id": ObjectId(owner_id),
         "is_active": True,
         "images": data.images,
+        # Guest house / single-property fields
+        "price": data.price,
+        "amenities": data.amenities,
+        "max_guests": data.max_guests,
     }
 
     result = hotel_collection.insert_one(hotel)
+    hotel["_id"] = result.inserted_id
 
-    return {
-        "id": str(result.inserted_id),
-        "name": hotel["name"],
-        "hotel_type": hotel["hotel_type"],
-        "contact_email": hotel["contact_email"],
-        "contact_phone": hotel["contact_phone"],
-        "country": hotel["country"],
-        "state": hotel["state"],
-        "city": hotel["city"],
-        "district": hotel["district"],
-        "address": hotel["address"],
-        "description": hotel["description"],
-        "owner_id": str(hotel["owner_id"]),
-        "is_active": hotel["is_active"],
-        "images": hotel["images"],
-    }
+    return _serialize_hotel(hotel)
 
 
 def update_hotel(hotel_id: str, data, owner_id: str):
@@ -70,62 +83,30 @@ def delete_hotel(hotel_id: str, owner_id: str):
             status_code=404, detail="Hotel not found or permission denied"
         )
 
+    # Cascade delete all rooms belonging to this hotel
+    room_collection.delete_many({"hotel_id": ObjectId(hotel_id)})
+
     return {"msg": "Hotel deleted successfully"}
 
 
 def get_my_hotels(owner_id: str):
     hotels = hotel_collection.find({"owner_id": ObjectId(owner_id)})
-
-    response = []
-    for hotel in hotels:
-        response.append(
-            {
-                "id": str(hotel["_id"]),
-                "name": hotel["name"],
-                "description": hotel.get("description"),
-                "city": hotel["city"],
-                "address": hotel["address"],
-                "owner_id": str(hotel["owner_id"]),
-                "is_active": hotel["is_active"],
-                "images": hotel.get("images", []),
-                "hotel_type": hotel.get("hotel_type", ""),
-                "contact_email": hotel.get("contact_email", ""),
-                "contact_phone": hotel.get("contact_phone", ""),
-                "country": hotel.get("country", ""),
-                "state": hotel.get("state", ""),
-                "district": hotel.get("district", ""),
-                "address": hotel.get("address", ""),
-            }
-        )
-
-    return response
+    return [_serialize_hotel(hotel) for hotel in hotels]
 
 
-def get_public_hotels(city: str | None = None):
+def get_public_hotels(district: str | None = None):
     query = {"is_active": True}
 
-    if city:
-        query["city"] = {"$regex": city, "$options": "i"}
+    if district:
+        query["district"] = {"$regex": district, "$options": "i"}
 
     hotels = hotel_collection.find(query)
 
     return [
         {
-            "id": str(hotel["_id"]),
-            "name": hotel["name"],
-            "description": hotel.get("description"),
-            "city": hotel["city"],
-            "address": hotel["address"],
-            "images": hotel.get("images", []),
+            **_serialize_hotel(hotel),
             "rating": 4.5,  # Mock rating
             "price": 100,  # Mock price
-            "hotel_type": hotel.get("hotel_type", ""),
-            "contact_email": hotel.get("contact_email", ""),
-            "contact_phone": hotel.get("contact_phone", ""),
-            "country": hotel.get("country", ""),
-            "state": hotel.get("state", ""),
-            "district": hotel.get("district", ""),
-            "address": hotel.get("address", ""),
         }
         for hotel in hotels
     ]
@@ -138,19 +119,7 @@ def get_public_hotel_by_id(hotel_id: str):
         raise HTTPException(status_code=404, detail="Hotel not found")
 
     return {
-        "id": str(hotel["_id"]),
-        "name": hotel["name"],
-        "description": hotel.get("description"),
-        "city": hotel["city"],
-        "address": hotel["address"],
-        "images": hotel.get("images", []),
+        **_serialize_hotel(hotel),
         "rating": 4.5,
         "price": 100,
-        "hotel_type": hotel.get("hotel_type", ""),
-        "contact_email": hotel.get("contact_email", ""),
-        "contact_phone": hotel.get("contact_phone", ""),
-        "country": hotel.get("country", ""),
-        "state": hotel.get("state", ""),
-        "district": hotel.get("district", ""),
-        "address": hotel.get("address", ""),
     }

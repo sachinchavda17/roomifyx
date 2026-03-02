@@ -41,7 +41,7 @@ def get_room_api(room_id: str, user=Depends(require_role("owner"))):
 def update_room_api(
     room_id: str, room: RoomUpdate, user=Depends(require_role("owner"))
 ):
-    return update_room(room_id, room)
+    return update_room(room_id, room, user["id"])
 
 
 # 🔒 Owner only

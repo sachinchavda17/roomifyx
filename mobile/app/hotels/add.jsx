@@ -10,15 +10,17 @@ export default function AddHotelScreen() {
   const queryClient = useQueryClient()
 
   const defaultValues = {
-    name: "hotel 3",
-    hotel_type: "apartment",
-    contact_email: "hotel@gmail.com",
-    contact_phone: "1234567890",
-    country: "India",
-    state: "Maharashtra",
-    district: "Mumbai",
-    address: "123 Main St",
-    description: "This is a hotel",
+    name: "",
+    hotel_type: "",
+    contact_email: "",
+    contact_phone: "",
+    country: "",
+    state: "",
+    district: "",
+    address: "",
+    description: "",
+    price: "",
+    max_guests: "",
   }
 
   const { mutate, isLoading } = useMutation({
@@ -33,7 +35,9 @@ export default function AddHotelScreen() {
     },
   })
 
-  const handleSubmit = (data, images) => mutate({ ...data, images })
+  const handleSubmit = (data, images) => {
+    mutate({ ...data, images })
+  }
 
   return <HotelForm defaultValues={defaultValues} isLoading={isLoading} onSubmit={handleSubmit} />
 }

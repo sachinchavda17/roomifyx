@@ -5,6 +5,12 @@ import { useMutation } from "../../hooks/use-mutation"
 import { Ionicons } from "@expo/vector-icons"
 import { Link, useRouter, Stack } from "expo-router"
 import { Colors, Spacing, Typography } from "../../constants/Theme"
+import { HOTEL_TYPES, MULTI_ROOM_TYPES } from "../../constants/hotel"
+
+const getHotelTypeLabel = (type) => {
+  const found = HOTEL_TYPES.find((t) => t.value === type)
+  return found ? found.label : type
+}
 
 export default function MyHotelsScreen() {
   const router = useRouter()
@@ -23,7 +29,7 @@ export default function MyHotelsScreen() {
   })
 
   const handleDelete = (id) => {
-    Alert.alert("Delete Hotel", "Are you sure you want to delete this hotel?", [
+    Alert.alert("Delete Hotel", "Are you sure you want to delete this hotel and all its rooms?", [
       { text: "Cancel", style: "cancel" },
       { text: "Delete", style: "destructive", onPress: () => removeHotel(id) },
     ])
@@ -32,8 +38,17 @@ export default function MyHotelsScreen() {
   const renderItem = ({ item }) => (
     <View style={styles.card}>
       <View style={styles.cardContent}>
-        <Text style={styles.cardTitle}>{item.name}</Text>
-        <Text style={styles.cardSubtitle}>{item.city}</Text>
+        <View style={styles.cardHeader}>
+          <Text style={styles.cardTitle} numberOfLines={1}>{item.name}</Text>
+          {item.hotel_type ? (
+            <View style={styles.typeBadge}>
+              <Text style={styles.typeBadgeText}>{getHotelTypeLabel(item.hotel_type)}</Text>
+            </View>
+          ) : null}
+        </View>
+        <Text style={styles.cardSubtitle} numberOfLines={1}>
+          {[item.district, item.state].filter(Boolean).join(", ") || item.address}
+        </Text>
       </View>
       <View style={styles.actions}>
         <Link href={`/hotels/${item.id}`} asChild>
@@ -59,10 +74,14 @@ export default function MyHotelsScreen() {
           data={hotels}
           keyExtractor={(item) => item.id}
           renderItem={renderItem}
-          contentContainerStyle={styles.listContent}
+          contentContainerStyle={[styles.listContent, !hotels?.length && { flex: 1 }]}
+          onRefresh={refetch}
+          refreshing={isLoading}
           ListEmptyComponent={
             <View style={styles.center}>
-              <Text style={styles.emptyText}>No hotels found. Add one to get started!</Text>
+              <Ionicons name="business-outline" size={48} color={Colors.lightGray} />
+              <Text style={styles.emptyText}>No hotels yet</Text>
+              <Text style={styles.emptySubText}>Tap + to add your first hotel</Text>
             </View>
           }
         />
@@ -84,6 +103,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     padding: Spacing.xl,
+    gap: Spacing.sm,
   },
   card: {
     flexDirection: "row",
@@ -98,11 +118,29 @@ const styles = StyleSheet.create({
   },
   cardContent: {
     flex: 1,
+    marginRight: Spacing.sm,
+  },
+  cardHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: Spacing.sm,
   },
   cardTitle: {
     fontSize: Typography.size.md,
     fontWeight: Typography.weight.semibold,
     color: Colors.black,
+    flexShrink: 1,
+  },
+  typeBadge: {
+    backgroundColor: Colors.primary + "18",
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: 2,
+    borderRadius: 6,
+  },
+  typeBadgeText: {
+    fontSize: Typography.size.xs || 11,
+    color: Colors.primary,
+    fontWeight: Typography.weight.semibold,
   },
   cardSubtitle: {
     fontSize: Typography.size.sm,
@@ -118,6 +156,12 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: Typography.size.md,
+    fontWeight: Typography.weight.semibold,
+    color: Colors.darkGray,
+    textAlign: "center",
+  },
+  emptySubText: {
+    fontSize: Typography.size.sm,
     color: Colors.darkGray,
     textAlign: "center",
   },

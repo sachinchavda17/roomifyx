@@ -5,11 +5,10 @@ import { useForm, Controller } from "react-hook-form"
 import { Colors, Spacing, Typography } from "../../constants/Theme"
 import InputText from "../InputText"
 import BottomSheetSelect from "../BottomSheetSelect"
-import { HOTEL_TYPES } from "../../constants/hotel"
-import SpinButton from "../micro-interactions/spin-button"
+import { HOTEL_TYPES, COMMON_AMENITIES } from "../../constants/hotel"
 import Button from "../base/button"
 
-export default function HotelForm({ defaultValues = null, onSubmit, isLoading = false, submitLabel, isEdit = false, footerContent = null }) {
+export default function HotelForm({ defaultValues = null, onSubmit, isLoading = false, isEdit = false, footerContent = null }) {
   const {
     control,
     handleSubmit,
@@ -18,23 +17,24 @@ export default function HotelForm({ defaultValues = null, onSubmit, isLoading = 
     reset,
   } = useForm({ defaultValues: defaultValues ?? {}, mode: "onChange" })
 
-  console.log("\n\n--hotel", defaultValues)
-
   useEffect(() => {
     if (!defaultValues || Object.keys(defaultValues).length === 0) return
     reset(defaultValues)
     if (defaultValues.images?.length) {
       setImages(defaultValues.images)
     }
+    if (defaultValues.amenities?.length) {
+      setAmenities(defaultValues.amenities)
+    }
   }, [defaultValues])
 
   const hotel_type = watch("hotel_type")
-  console.log("\n\n--hotel_type", hotel_type)
-
   const isMultiRoom = hotel_type === "hotel" || hotel_type === "resort"
+  const isGuestHouse = hotel_type === "guest_house"
 
-  const [images, setImages] = useState(["https://picsum.photos/300/200"])
+  const [images, setImages] = useState(defaultValues?.images?.length ? defaultValues.images : [])
   const [tempImage, setTempImage] = useState("")
+  const [amenities, setAmenities] = useState(defaultValues?.amenities?.length ? defaultValues.amenities : [])
 
   const handleAddImage = () => {
     if (!tempImage.trim()) return
@@ -46,7 +46,22 @@ export default function HotelForm({ defaultValues = null, onSubmit, isLoading = 
     setImages((prev) => prev.filter((_, i) => i !== index))
   }
 
-  const buttonLabel = submitLabel ? submitLabel({ isMultiRoom, isEdit }) : isEdit ? "Update Hotel" : isMultiRoom ? "Next — Add Rooms" : "Create Hotel"
+  const toggleAmenity = (item) => {
+    setAmenities((prev) => (prev.includes(item) ? prev.filter((a) => a !== item) : [...prev, item]))
+  }
+
+  const buttonLabel = isEdit ? "Update Hotel" : isMultiRoom ? "Next — Add Rooms" : "Create Hotel"
+
+  const handleFormSubmit = (data) => {
+    const payload = { ...data }
+    // Include guest house fields
+    if (isGuestHouse) {
+      payload.amenities = amenities
+      if (payload.price) payload.price = parseFloat(payload.price)
+      if (payload.max_guests) payload.max_guests = parseInt(payload.max_guests, 10)
+    }
+    onSubmit(payload, images)
+  }
 
   return (
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : "height"}>
@@ -54,39 +69,38 @@ export default function HotelForm({ defaultValues = null, onSubmit, isLoading = 
         {/* Hotel Name */}
         <InputText label="Hotel Name" placeholder="Grand Resort" control={control} name="name" isRequired error={errors.name?.message} />
 
-        {/* Hotel Type + Contact Phone — hidden on edit (type cannot change) */}
-        {/* {!isEdit && ( */}
-          <View style={styles.row}>
-            <Controller
-              control={control}
-              name="hotel_type"
-              rules={{ required: "This field is required" }}
-              render={({ field: { onChange, value } }) => (
-                <BottomSheetSelect
-                  label="Hotel Type"
-                  options={HOTEL_TYPES}
-                  value={value}
-                  onChange={onChange}
-                  placeholder="Select Type"
-                  title="Select Hotel Type"
-                  isRequired
-                  style={{ flex: 1 }}
-                  error={errors.hotel_type?.message}
-                />
-              )}
-            />
-            <InputText
-              label="Contact Phone"
-              placeholder="+91 12345 12345"
-              control={control}
-              name="contact_phone"
-              isRequired
-              error={errors.contact_phone?.message}
-              style={{ flex: 1 }}
-              keyboardType="phone-pad"
-            />
-          </View>
-        {/* )} */}
+        {/* Hotel Type + Contact Phone */}
+        <View style={styles.row}>
+          <Controller
+            control={control}
+            name="hotel_type"
+            rules={{ required: "This field is required" }}
+            render={({ field: { onChange, value } }) => (
+              <BottomSheetSelect
+                label="Hotel Type"
+                options={HOTEL_TYPES}
+                value={value}
+                onChange={isEdit ? undefined : onChange}
+                placeholder="Select Type"
+                title="Select Hotel Type"
+                isRequired
+                style={{ flex: 1 }}
+                error={errors.hotel_type?.message}
+                disabled={isEdit}
+              />
+            )}
+          />
+          <InputText
+            label="Contact Phone"
+            placeholder="+91 12345 12345"
+            control={control}
+            name="contact_phone"
+            isRequired
+            error={errors.contact_phone?.message}
+            style={{ flex: 1 }}
+            keyboardType="phone-pad"
+          />
+        </View>
 
         {/* Contact Email */}
         <InputText
@@ -157,6 +171,61 @@ export default function HotelForm({ defaultValues = null, onSubmit, isLoading = 
           inputWrapperStyle={{ height: 120, minHeight: 120 }}
         />
 
+        {/* Guest House specific fields */}
+        {isGuestHouse && (
+          <>
+            <View style={styles.sectionDivider}>
+              <View style={styles.sectionDividerLine} />
+              <Text style={styles.sectionDividerText}>Property Details</Text>
+              <View style={styles.sectionDividerLine} />
+            </View>
+
+            <View style={styles.row}>
+              <InputText
+                label="Price / Night (₹)"
+                placeholder="e.g. 2500"
+                control={control}
+                name="price"
+                isRequired
+                error={errors.price?.message}
+                style={{ flex: 1 }}
+                keyboardType="numeric"
+                rules={{
+                  required: "Price is required",
+                  pattern: { value: /^\d+(\.\d{1,2})?$/, message: "Enter a valid price" },
+                }}
+              />
+              <InputText
+                label="Max Guests"
+                placeholder="e.g. 4"
+                control={control}
+                name="max_guests"
+                error={errors.max_guests?.message}
+                style={{ flex: 1 }}
+                keyboardType="numeric"
+                rules={{
+                  pattern: { value: /^\d+$/, message: "Enter a valid number" },
+                }}
+              />
+            </View>
+
+            {/* Amenities */}
+            <View style={styles.section}>
+              <Text style={styles.sectionLabel}>Amenities</Text>
+              <View style={styles.amenitiesGrid}>
+                {COMMON_AMENITIES.map((item) => {
+                  const selected = amenities.includes(item)
+                  return (
+                    <TouchableOpacity key={item} style={[styles.amenityChip, selected && styles.amenityChipSelected]} onPress={() => toggleAmenity(item)}>
+                      <Text style={[styles.amenityChipText, selected && styles.amenityChipTextSelected]}>{item}</Text>
+                    </TouchableOpacity>
+                  )
+                })}
+              </View>
+            </View>
+          </>
+        )}
+
         {/* Images */}
         <View style={styles.formGroup}>
           <Text style={styles.label}>Images</Text>
@@ -187,16 +256,8 @@ export default function HotelForm({ defaultValues = null, onSubmit, isLoading = 
         </View>
 
         {/* Submit */}
-        {/* <TouchableOpacity
-          style={[styles.submitButton, isLoading && styles.disabledButton]}
-          onPress={handleSubmit((data) => onSubmit(data, images))}
-          disabled={isLoading}
-        >
-          {isLoading ? <ActivityIndicator color={Colors.white} /> : <Text style={styles.submitButtonText}>{buttonLabel}</Text>}
-        </TouchableOpacity> */}
-
         <Button
-          onPress={handleSubmit((data) => onSubmit(data, images))}
+          onPress={handleSubmit(handleFormSubmit)}
           isLoading={isLoading}
           disabled={isLoading || !isValid}
           backgroundColor={Colors.primary}
@@ -210,15 +271,7 @@ export default function HotelForm({ defaultValues = null, onSubmit, isLoading = 
         >
           <Text style={styles.submitButtonText}>{buttonLabel}</Text>
         </Button>
-        {/* <SpinButton
-          idleText={buttonLabel}
-          activeText="Saving..."
-          controlled
-          isActive={isLoading}
-          disabled={isLoading || !isValid}
-          buttonStyle={{ paddingHorizontal: 40, paddingVertical: 14, borderRadius: 12 }}
-          onPress={handleSubmit((data) => onSubmit(data, images))}
-        /> */}
+
         {/* Extra content injected by parent (e.g. Manage Rooms button) */}
         {footerContent}
       </ScrollView>
@@ -247,6 +300,59 @@ const styles = StyleSheet.create({
     fontWeight: Typography.weight.semibold,
     color: Colors.black,
     marginBottom: Spacing.xs,
+  },
+  sectionDivider: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: Spacing.md,
+    marginTop: Spacing.sm,
+  },
+  sectionDividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: Colors.lightGray,
+  },
+  sectionDividerText: {
+    marginHorizontal: Spacing.sm,
+    fontSize: Typography.size.sm,
+    fontWeight: Typography.weight.semibold,
+    color: Colors.darkGray,
+    textTransform: "uppercase",
+    letterSpacing: 1,
+  },
+  section: {
+    marginBottom: Spacing.lg,
+  },
+  sectionLabel: {
+    fontSize: Typography.size.sm,
+    fontWeight: Typography.weight.semibold,
+    color: Colors.black,
+    marginBottom: Spacing.sm,
+  },
+  amenitiesGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: Spacing.sm,
+  },
+  amenityChip: {
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.xs,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: Colors.lightGray,
+    backgroundColor: Colors.white,
+  },
+  amenityChipSelected: {
+    backgroundColor: Colors.primary,
+    borderColor: Colors.primary,
+  },
+  amenityChipText: {
+    fontSize: Typography.size.sm,
+    color: Colors.darkGray,
+  },
+  amenityChipTextSelected: {
+    color: Colors.white,
+    fontWeight: Typography.weight.semibold,
   },
   urlInput: {
     borderWidth: 1,
@@ -281,16 +387,6 @@ const styles = StyleSheet.create({
     marginRight: Spacing.sm,
     fontSize: Typography.size.sm,
     color: Colors.black,
-  },
-  submitButton: {
-    backgroundColor: Colors.primary,
-    padding: Spacing.md,
-    borderRadius: 12,
-    alignItems: "center",
-    marginTop: Spacing.md,
-  },
-  disabledButton: {
-    opacity: 0.6,
   },
   submitButtonText: {
     color: Colors.white,

@@ -44,7 +44,7 @@ export default function ManageRoomsScreen() {
       <View style={styles.cardContent}>
         <Text style={styles.cardTitle}>{item.title}</Text>
         <Text style={styles.cardSubtitle}>
-          {item.room_type} · ₹{item.price}/night
+          #{item.room_number} · {item.room_type} · ₹{item.price}/night
         </Text>
       </View>
       <View style={styles.actions}>
