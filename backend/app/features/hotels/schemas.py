@@ -24,6 +24,7 @@ class HotelCreate(BaseModel):
 
 class HotelUpdate(BaseModel):
     name: Optional[str] = None
+    hotel_type: Optional[HotelType] = None
     contact_email: Optional[str] = None
     contact_phone: Optional[str] = None
     country: Optional[str] = None

@@ -13,6 +13,7 @@ export default function BottomSheetSelect({
   isRequired,
   style,
   error,
+  disabled,
 }) {
   const [visible, setVisible] = useState(false)
 
@@ -34,7 +35,7 @@ export default function BottomSheetSelect({
       )}
 
       {/* Trigger */}
-      <TouchableOpacity style={[styles.trigger, error && styles.triggerError]} onPress={() => setVisible(true)} activeOpacity={0.7}>
+      <TouchableOpacity style={[styles.trigger, error && styles.triggerError, disabled && styles.disabled]} onPress={() => !disabled && setVisible(true)} activeOpacity={0.7}>
         <Text style={[styles.triggerText, !selectedOption && styles.placeholder]}>{selectedOption ? selectedOption.label : placeholder}</Text>
         <Ionicons name="chevron-down" size={18} color={Colors.darkGray} />
       </TouchableOpacity>
@@ -177,5 +178,8 @@ const styles = StyleSheet.create({
   separator: {
     height: 1,
     backgroundColor: Colors.gray[100],
+  },
+  disabled: {
+    opacity: 0.5,
   },
 })

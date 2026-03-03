@@ -15,7 +15,7 @@ export default function EditHotelScreen() {
   const router = useRouter()
   const queryClient = useQueryClient()
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, refetch } = useQuery({
     queryKey: ["hotel", id],
     queryFn: getPublicHotel,
     payload: { id },
@@ -24,10 +24,14 @@ export default function EditHotelScreen() {
 
   const { mutate, isLoading: isSaving } = useMutation({
     mutationFn: updateHotel,
-    onSuccess: () => {
+    onSuccess: (createdHotel) => {
+      // refresh the my-hotels list
+      refetch()
       queryClient.invalidateQueries({ queryKey: ["my-hotels"] })
-      queryClient.invalidateQueries({ queryKey: ["hotel", id] })
-      router.back()
+
+      const isMultiRoom = MULTI_ROOM_TYPES.includes(createdHotel.hotel_type)
+      if (isMultiRoom) router.replace({ pathname: "/rooms/add-room", params: { hotel_id: createdHotel.id } })
+      else router.back()
     },
   })
 
@@ -90,37 +94,5 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-  },
-  manageRoomsSection: {
-    marginTop: Spacing.lg,
-  },
-  divider: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: Spacing.md,
-  },
-  dividerLine: {
-    flex: 1,
-    height: 1,
-    backgroundColor: Colors.lightGray,
-  },
-  dividerText: {
-    marginHorizontal: Spacing.sm,
-    fontSize: Typography.size.sm,
-    fontWeight: Typography.weight.semibold,
-    color: Colors.darkGray,
-    textTransform: "uppercase",
-    letterSpacing: 1,
-  },
-  manageRoomsHint: {
-    fontSize: Typography.size.sm,
-    color: Colors.darkGray,
-    marginBottom: Spacing.md,
-    lineHeight: 20,
-  },
-  manageRoomsText: {
-    color: Colors.white,
-    fontSize: Typography.size.md,
-    fontWeight: Typography.weight.semibold,
   },
 })
