@@ -94,19 +94,50 @@ def get_my_hotels(owner_id: str):
     return [_serialize_hotel(hotel) for hotel in hotels]
 
 
-def get_public_hotels(district: str | None = None):
+def get_public_hotels(
+    district: str | None = None,
+    search: str | None = None,
+    hotel_type: str | None = None,
+):
     query = {"is_active": True}
 
     if district:
         query["district"] = {"$regex": district, "$options": "i"}
 
-    hotels = hotel_collection.find(query)
+    if search:
+        query["$or"] = [
+            {"name": {"$regex": search, "$options": "i"}},
+            {"address": {"$regex": search, "$options": "i"}},
+            {"district": {"$regex": search, "$options": "i"}},
+            {"state": {"$regex": search, "$options": "i"}},
+        ]
+
+    if hotel_type:
+        query["hotel_type"] = hotel_type
+
+    hotels = list(hotel_collection.find(query))
+
+    # Get min room prices for multi-room hotels (hotel/resort)
+    multi_room_ids = [
+        hotel["_id"]
+        for hotel in hotels
+        if hotel.get("hotel_type") in ("hotel", "resort")
+    ]
+
+    min_prices = {}
+    if multi_room_ids:
+        pipeline = [
+            {"$match": {"hotel_id": {"$in": multi_room_ids}, "status": "available"}},
+            {"$group": {"_id": "$hotel_id", "min_price": {"$min": "$price"}}},
+        ]
+        for result in room_collection.aggregate(pipeline):
+            min_prices[str(result["_id"])] = result["min_price"]
 
     return [
         {
             **_serialize_hotel(hotel),
-            "rating": 4.5,  # Mock rating
-            "price": 100,  # Mock price
+            "rating": 4.5,  # Mock rating until rating system is built
+            "price": hotel.get("price") or min_prices.get(str(hotel["_id"])),
         }
         for hotel in hotels
     ]
@@ -118,8 +149,19 @@ def get_public_hotel_by_id(hotel_id: str):
     if not hotel:
         raise HTTPException(status_code=404, detail="Hotel not found")
 
+    # For multi-room hotels, get min room price
+    price = hotel.get("price")
+    if not price and hotel.get("hotel_type") in ("hotel", "resort"):
+        pipeline = [
+            {"$match": {"hotel_id": ObjectId(hotel_id), "status": "available"}},
+            {"$group": {"_id": None, "min_price": {"$min": "$price"}}},
+        ]
+        result = list(room_collection.aggregate(pipeline))
+        if result:
+            price = result[0]["min_price"]
+
     return {
         **_serialize_hotel(hotel),
         "rating": 4.5,
-        "price": 100,
+        "price": price,
     }

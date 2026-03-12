@@ -9,6 +9,13 @@ export default function TabLayout() {
       tabBar={(props) => <CurvedBottomTabs {...props} />}
       screenOptions={{
         headerShown: false,
+        tabBarStyle: {
+          backgroundColor: "transparent",
+          position: "absolute",
+          borderTopWidth: 0,
+          elevation: 0,
+          shadowOpacity: 0,
+        },
       }}
     >
       <Tabs.Screen

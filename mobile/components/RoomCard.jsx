@@ -4,18 +4,31 @@ import { Ionicons } from "@expo/vector-icons"
 import { useRouter } from "expo-router"
 import { Colors, Typography, Spacing } from "../constants/Theme"
 
+const HOTEL_TYPE_LABELS = {
+  hotel: "Hotel",
+  resort: "Resort",
+  guest_house: "Guest House",
+  apartment: "Apartment",
+}
+
+const PLACEHOLDER_IMAGE = "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&q=60&w=800"
+
 export default function RoomCard({ item }) {
   const router = useRouter()
+
+  const imageUri = item.images?.length > 0 ? item.images[0] : PLACEHOLDER_IMAGE
+  const typeLabel = HOTEL_TYPE_LABELS[item.hotel_type] || item.hotel_type
+  const location = [item.district, item.state].filter(Boolean).join(", ") || item.address
 
   const handlePress = () => {
     router.push({
       pathname: `/hotel-detail/${item.id}`,
       params: {
         name: item.name,
-        price: item.price,
+        price: item.price || "",
         rating: item.rating,
-        address: item.address || item.city,
-        image: item.images?.[0] || "",
+        address: item.address || "",
+        image: imageUri,
       },
     })
   }
@@ -23,10 +36,13 @@ export default function RoomCard({ item }) {
   return (
     <TouchableOpacity style={styles.card} onPress={handlePress} activeOpacity={0.9}>
       <View style={styles.imageContainer}>
-        <Image source={{ uri: item.images[0] }} style={styles.image} contentFit="cover" transition={300} />
+        <Image source={{ uri: imageUri }} style={styles.image} contentFit="cover" transition={300} />
         <TouchableOpacity style={styles.heartButton}>
           <Ionicons name="heart-outline" size={24} color={Colors.white} />
         </TouchableOpacity>
+        <View style={styles.typeBadge}>
+          <Text style={styles.typeBadgeText}>{typeLabel}</Text>
+        </View>
       </View>
       <View style={styles.infoContainer}>
         <View style={styles.headerRow}>
@@ -38,10 +54,21 @@ export default function RoomCard({ item }) {
             <Text style={styles.ratingText}>{item.rating}</Text>
           </View>
         </View>
-        <Text style={styles.location}>{item.address}</Text>
+        <Text style={styles.location} numberOfLines={1}>
+          {location}
+        </Text>
         <View style={styles.priceContainer}>
-          <Text style={styles.price}>₹{item.price}</Text>
-          <Text style={styles.night}> / night</Text>
+          {item.price ? (
+            <>
+              <Text style={styles.price}>
+                {item.hotel_type === "hotel" || item.hotel_type === "resort" ? "From " : ""}
+                ₹{item.price}
+              </Text>
+              <Text style={styles.night}> / night</Text>
+            </>
+          ) : (
+            <Text style={styles.priceUnavailable}>Price on request</Text>
+          )}
         </View>
       </View>
     </TouchableOpacity>
@@ -66,6 +93,20 @@ const styles = StyleSheet.create({
     position: "absolute",
     top: 15,
     right: 15,
+  },
+  typeBadge: {
+    position: "absolute",
+    top: 15,
+    left: 15,
+    backgroundColor: "rgba(0,0,0,0.6)",
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  typeBadgeText: {
+    color: Colors.white,
+    fontSize: Typography.size.xs,
+    fontWeight: Typography.weight.medium,
   },
   infoContainer: {
     marginTop: Spacing.sm,
@@ -111,5 +152,9 @@ const styles = StyleSheet.create({
     color: Colors.black,
     fontWeight: Typography.weight.regular,
   },
+  priceUnavailable: {
+    fontSize: Typography.size.sm,
+    color: Colors.darkGray,
+    fontStyle: "italic",
+  },
 })
-

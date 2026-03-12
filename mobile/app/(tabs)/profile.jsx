@@ -29,14 +29,14 @@ export default function ProfileScreen() {
     mutationFn: deleteAccount,
     onSuccess: async () => {
       await logout()
-      router.replace("/(auth)/login")
+      // router.replace("/(tabs)")
     },
     showSuccess: true,
   })
 
   const handleLogout = async () => {
     await logout()
-    // router.push("/(tabs)/")
+    // router.replace("/(tabs)")
   }
 
   const handleDeleteAccount = () => {
@@ -179,7 +179,7 @@ function MenuLink({ icon, title, href }) {
 
 const styles = StyleSheet.create({
   content: {
-    // paddingBottom: 80,
+    paddingBottom: 100,
   },
   profileHeader: {
     position: "relative",
@@ -299,4 +299,3 @@ const styles = StyleSheet.create({
     zIndex: 999,
   },
 })
-

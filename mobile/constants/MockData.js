@@ -42,11 +42,9 @@ export const ROOMS = [
 ]
 
 export const CATEGORIES = [
-  { name: "Amazing Views", icon: "image-outline" },
-  { name: "Cabins", icon: "home-outline" },
-  { name: "Design", icon: "brush-outline" },
-  { name: "Farms", icon: "leaf-outline" },
-  { name: "Surfing", icon: "water-outline" },
-  { name: "Luxury", icon: "diamond-outline" },
+  { name: "All", icon: "apps-outline", value: null },
+  { name: "Hotels", icon: "business-outline", value: "hotel" },
+  { name: "Resorts", icon: "umbrella-outline", value: "resort" },
+  { name: "Guest Houses", icon: "home-outline", value: "guest_house" },
 ]
 

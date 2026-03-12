@@ -1,18 +1,42 @@
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Dimensions, Share } from "react-native"
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Dimensions, Share, Linking } from "react-native"
 import { Image } from "expo-image"
 import { Ionicons } from "@expo/vector-icons"
 import { useLocalSearchParams, useRouter, Stack } from "expo-router"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
-import { useState, useRef } from "react"
+import { useState } from "react"
 import Animated, { useSharedValue, useAnimatedStyle, useAnimatedScrollHandler, interpolate, Extrapolation } from "react-native-reanimated"
 import { Colors, Spacing, Typography } from "../../constants/Theme"
 import { HOTEL_DETAIL_CONTENT } from "../../constants/HotelDetailContent"
 import { useQuery } from "../../hooks/use-query"
 import { getPublicHotel } from "../../services/hotels"
+import { getPublicRooms } from "../../services/rooms"
 import { CircularLoader } from "../../components/molecules/circular-loader"
+import { MULTI_ROOM_TYPES } from "../../constants/hotel"
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window")
 const IMAGE_HEIGHT = SCREEN_WIDTH * 0.85
+
+const PLACEHOLDER_IMAGE = "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&q=60&w=800"
+
+const HOTEL_TYPE_LABELS = {
+    hotel: "Hotel",
+    resort: "Resort",
+    guest_house: "Guest House",
+    apartment: "Apartment",
+}
+
+const AMENITY_ICONS = {
+    WiFi: "wifi",
+    AC: "snow-outline",
+    TV: "tv-outline",
+    "Hot Water": "water-outline",
+    "Room Service": "restaurant-outline",
+    "Mini Bar": "wine-outline",
+    Balcony: "leaf-outline",
+    Parking: "car-outline",
+    Gym: "fitness-outline",
+    Pool: "water-outline",
+}
 
 export default function HotelDetailScreen() {
     const { id, name, price, rating, address, image } = useLocalSearchParams()
@@ -28,8 +52,20 @@ export default function HotelDetailScreen() {
         enabled: !!id,
     })
 
-    const hotelData = hotel || { name, price, rating, address, images: image ? [image] : [] }
-    const images = hotelData.images || (image ? [image] : [])
+    const hotelData = hotel || { name, price: Number(price) || null, rating, address, images: image ? [image] : [] }
+    const images = hotelData.images?.length > 0 ? hotelData.images : (image ? [image] : [])
+    const isMultiRoom = MULTI_ROOM_TYPES.includes(hotelData.hotel_type)
+    const typeLabel = HOTEL_TYPE_LABELS[hotelData.hotel_type] || ""
+    const location = [hotelData.district, hotelData.state].filter(Boolean).join(", ") || hotelData.address
+
+    // Fetch rooms for multi-room hotels
+    const { data: rooms, isLoading: roomsLoading } = useQuery({
+        queryKey: ["public-rooms", id],
+        queryFn: () => getPublicRooms(id),
+        enabled: !!id && isMultiRoom,
+    })
+
+    const availableRooms = (rooms || []).filter((r) => r.status === "available")
 
     const scrollHandler = useAnimatedScrollHandler({
         onScroll: (event) => {
@@ -51,8 +87,9 @@ export default function HotelDetailScreen() {
 
     const handleShare = async () => {
         try {
+            const priceText = hotelData.price ? ` ₹${hotelData.price}/night` : ""
             await Share.share({
-                message: `Check out ${hotelData.name} on RoomifyX! ₹${hotelData.price}/night`,
+                message: `Check out ${hotelData.name} on RoomifyX!${priceText}`,
             })
         } catch (error) {
             // silently fail
@@ -62,6 +99,19 @@ export default function HotelDetailScreen() {
     const onImageScroll = (event) => {
         const index = Math.round(event.nativeEvent.contentOffset.x / SCREEN_WIDTH)
         setActiveImageIndex(index)
+    }
+
+    const handleReserve = () => {
+        router.push({
+            pathname: `/reserve/${id}`,
+            params: {
+                name: hotelData.name,
+                price: hotelData.price || "",
+                rating: hotelData.rating,
+                address: hotelData.address || "",
+                image: images[0] || "",
+            },
+        })
     }
 
     if (isLoading && !name) {
@@ -107,9 +157,7 @@ export default function HotelDetailScreen() {
                                     <Image key={index} source={{ uri: img }} style={styles.heroImage} contentFit="cover" transition={300} />
                                 ))
                             ) : (
-                                <View style={[styles.heroImage, styles.placeholderImage]}>
-                                    <Ionicons name="image-outline" size={60} color={Colors.lightGray} />
-                                </View>
+                                <Image source={{ uri: PLACEHOLDER_IMAGE }} style={styles.heroImage} contentFit="cover" transition={300} />
                             )}
                         </ScrollView>
                     </Animated.View>
@@ -124,7 +172,7 @@ export default function HotelDetailScreen() {
                                 <Ionicons name="share-outline" size={22} color={Colors.black} />
                             </TouchableOpacity>
                             <TouchableOpacity style={styles.overlayButton} onPress={() => setLiked(!liked)}>
-                                <Ionicons name={liked ? "heart" : "heart-outline"} size={22} color={liked ? Colors.primary : Colors.black} />
+                                <Ionicons name={liked ? "heart" : "heart-outline"} size={22} color={liked ? Colors.red : Colors.black} />
                             </TouchableOpacity>
                         </View>
                     </View>
@@ -143,59 +191,155 @@ export default function HotelDetailScreen() {
                 <View style={styles.contentContainer}>
                     {/* Title section */}
                     <View style={styles.titleSection}>
+                        {typeLabel ? (
+                            <View style={styles.typeBadgeRow}>
+                                <View style={styles.typeBadge}>
+                                    <Text style={styles.typeBadgeText}>{typeLabel}</Text>
+                                </View>
+                            </View>
+                        ) : null}
                         <Text style={styles.hotelName}>{hotelData.name}</Text>
                         <View style={styles.ratingRow}>
                             <Ionicons name="star" size={16} color={Colors.star} />
                             <Text style={styles.ratingText}>{hotelData.rating}</Text>
-                            <Text style={styles.reviewCount}>· 128 reviews</Text>
                         </View>
                         <View style={styles.locationRow}>
                             <Ionicons name="location-outline" size={16} color={Colors.darkGray} />
-                            <Text style={styles.locationText}>{hotelData.address || hotelData.city}</Text>
+                            <Text style={styles.locationText}>{location}</Text>
                         </View>
+                        {hotelData.address && location !== hotelData.address && (
+                            <Text style={styles.addressText}>{hotelData.address}</Text>
+                        )}
                     </View>
 
                     <View style={styles.divider} />
 
-                    {/* Host info */}
-                    <View style={styles.hostSection}>
-                        <View style={styles.hostAvatar}>
-                            <Ionicons name="person-circle" size={50} color={Colors.darkGray} />
-                        </View>
-                        <View style={styles.hostInfo}>
-                            <Text style={styles.hostName}>Hosted by {HOTEL_DETAIL_CONTENT.hostInfo.name}</Text>
-                            <Text style={styles.hostMeta}>
-                                Superhost · {HOTEL_DETAIL_CONTENT.hostInfo.responseRate} response rate
-                            </Text>
-                        </View>
-                    </View>
-
-                    <View style={styles.divider} />
-
-                    {/* Highlights */}
-                    <View style={styles.section}>
-                        <Text style={styles.sectionTitle}>What this place offers</Text>
-                        <View style={styles.highlightsGrid}>
-                            {HOTEL_DETAIL_CONTENT.highlights.map((item, index) => (
-                                <View key={index} style={styles.highlightItem}>
-                                    <Ionicons name={item.icon} size={24} color={Colors.black} />
-                                    <Text style={styles.highlightLabel}>{item.label}</Text>
-                                </View>
-                            ))}
-                        </View>
-                    </View>
-
-                    <View style={styles.divider} />
+                    {/* Quick info for guest houses */}
+                    {!isMultiRoom && (hotelData.max_guests || hotelData.price) && (
+                        <>
+                            <View style={styles.quickInfoRow}>
+                                {hotelData.max_guests && (
+                                    <View style={styles.quickInfoItem}>
+                                        <Ionicons name="people-outline" size={22} color={Colors.primary} />
+                                        <Text style={styles.quickInfoLabel}>Up to {hotelData.max_guests} guests</Text>
+                                    </View>
+                                )}
+                                {hotelData.price && (
+                                    <View style={styles.quickInfoItem}>
+                                        <Ionicons name="pricetag-outline" size={22} color={Colors.primary} />
+                                        <Text style={styles.quickInfoLabel}>₹{hotelData.price} / night</Text>
+                                    </View>
+                                )}
+                            </View>
+                            <View style={styles.divider} />
+                        </>
+                    )}
 
                     {/* Description */}
-                    <View style={styles.section}>
-                        <Text style={styles.sectionTitle}>About this place</Text>
-                        <Text style={styles.descriptionText}>
-                            {hotelData.description || HOTEL_DETAIL_CONTENT.description}
-                        </Text>
-                    </View>
+                    {hotelData.description && (
+                        <>
+                            <View style={styles.section}>
+                                <Text style={styles.sectionTitle}>About this place</Text>
+                                <Text style={styles.descriptionText}>{hotelData.description}</Text>
+                            </View>
+                            <View style={styles.divider} />
+                        </>
+                    )}
 
-                    <View style={styles.divider} />
+                    {/* Amenities */}
+                    {hotelData.amenities?.length > 0 && (
+                        <>
+                            <View style={styles.section}>
+                                <Text style={styles.sectionTitle}>What this place offers</Text>
+                                <View style={styles.amenitiesGrid}>
+                                    {hotelData.amenities.map((amenity, index) => (
+                                        <View key={index} style={styles.amenityItem}>
+                                            <Ionicons
+                                                name={AMENITY_ICONS[amenity] || "checkmark-circle-outline"}
+                                                size={24}
+                                                color={Colors.black}
+                                            />
+                                            <Text style={styles.amenityLabel}>{amenity}</Text>
+                                        </View>
+                                    ))}
+                                </View>
+                            </View>
+                            <View style={styles.divider} />
+                        </>
+                    )}
+
+                    {/* Rooms section for multi-room hotels */}
+                    {isMultiRoom && (
+                        <>
+                            <View style={styles.section}>
+                                <Text style={styles.sectionTitle}>Available Rooms</Text>
+                                {roomsLoading ? (
+                                    <View style={styles.roomsLoading}>
+                                        <CircularLoader />
+                                    </View>
+                                ) : availableRooms.length > 0 ? (
+                                    <View style={styles.roomsList}>
+                                        {availableRooms.map((room) => (
+                                            <View key={room.id} style={styles.roomItem}>
+                                                {room.images?.length > 0 ? (
+                                                    <Image source={{ uri: room.images[0] }} style={styles.roomImage} contentFit="cover" transition={200} />
+                                                ) : (
+                                                    <View style={[styles.roomImage, styles.roomImagePlaceholder]}>
+                                                        <Ionicons name="bed-outline" size={24} color={Colors.darkGray} />
+                                                    </View>
+                                                )}
+                                                <View style={styles.roomInfo}>
+                                                    <Text style={styles.roomType}>
+                                                        {(room.room_type || "Standard").charAt(0).toUpperCase() + (room.room_type || "standard").slice(1)}
+                                                    </Text>
+                                                    <Text style={styles.roomTitle} numberOfLines={1}>
+                                                        {room.title || `Room ${room.room_number}`}
+                                                    </Text>
+                                                    <Text style={styles.roomPrice}>₹{room.price} / night</Text>
+                                                </View>
+                                            </View>
+                                        ))}
+                                    </View>
+                                ) : (
+                                    <View style={styles.noRooms}>
+                                        <Ionicons name="bed-outline" size={36} color={Colors.lightGray} />
+                                        <Text style={styles.noRoomsText}>No rooms available right now</Text>
+                                    </View>
+                                )}
+                            </View>
+                            <View style={styles.divider} />
+                        </>
+                    )}
+
+                    {/* Contact info */}
+                    {(hotelData.contact_phone || hotelData.contact_email) && (
+                        <>
+                            <View style={styles.section}>
+                                <Text style={styles.sectionTitle}>Contact</Text>
+                                {hotelData.contact_phone && (
+                                    <TouchableOpacity
+                                        style={styles.contactRow}
+                                        onPress={() => Linking.openURL(`tel:${hotelData.contact_phone}`)}
+                                    >
+                                        <Ionicons name="call-outline" size={20} color={Colors.primary} />
+                                        <Text style={styles.contactText}>{hotelData.contact_phone}</Text>
+                                        <Ionicons name="chevron-forward" size={16} color={Colors.darkGray} />
+                                    </TouchableOpacity>
+                                )}
+                                {hotelData.contact_email && (
+                                    <TouchableOpacity
+                                        style={styles.contactRow}
+                                        onPress={() => Linking.openURL(`mailto:${hotelData.contact_email}`)}
+                                    >
+                                        <Ionicons name="mail-outline" size={20} color={Colors.primary} />
+                                        <Text style={styles.contactText}>{hotelData.contact_email}</Text>
+                                        <Ionicons name="chevron-forward" size={16} color={Colors.darkGray} />
+                                    </TouchableOpacity>
+                                )}
+                            </View>
+                            <View style={styles.divider} />
+                        </>
+                    )}
 
                     {/* House Rules */}
                     <View style={styles.section}>
@@ -224,19 +368,18 @@ export default function HotelDetailScreen() {
             {/* Bottom booking bar */}
             <View style={[styles.bookingBar, { paddingBottom: insets.bottom || 16 }]}>
                 <View style={styles.priceContainer}>
-                    <Text style={styles.priceText}>₹{hotelData.price}</Text>
-                    <Text style={styles.priceNight}> / night</Text>
+                    {hotelData.price ? (
+                        <>
+                            <Text style={styles.priceText}>
+                                {isMultiRoom ? "From " : ""}₹{hotelData.price}
+                            </Text>
+                            <Text style={styles.priceNight}> / night</Text>
+                        </>
+                    ) : (
+                        <Text style={styles.priceNight}>Select dates & room</Text>
+                    )}
                 </View>
-                <TouchableOpacity style={styles.reserveButton} activeOpacity={0.85} onPress={() => router.push({
-                    pathname: `/reserve/${id}`,
-                    params: {
-                        name: hotelData.name,
-                        price: hotelData.price,
-                        rating: hotelData.rating,
-                        address: hotelData.address || hotelData.city,
-                        image: images[0] || "",
-                    },
-                })}>
+                <TouchableOpacity style={styles.reserveButton} activeOpacity={0.85} onPress={handleReserve}>
                     <Text style={styles.reserveButtonText}>Reserve</Text>
                 </TouchableOpacity>
             </View>
@@ -297,11 +440,6 @@ const styles = StyleSheet.create({
         width: SCREEN_WIDTH,
         height: IMAGE_HEIGHT,
     },
-    placeholderImage: {
-        backgroundColor: Colors.gray[100],
-        justifyContent: "center",
-        alignItems: "center",
-    },
     imageOverlay: {
         position: "absolute",
         left: Spacing.md,
@@ -353,6 +491,21 @@ const styles = StyleSheet.create({
     titleSection: {
         marginBottom: Spacing.sm,
     },
+    typeBadgeRow: {
+        flexDirection: "row",
+        marginBottom: 8,
+    },
+    typeBadge: {
+        backgroundColor: Colors.primary,
+        paddingHorizontal: 12,
+        paddingVertical: 4,
+        borderRadius: 12,
+    },
+    typeBadgeText: {
+        color: Colors.white,
+        fontSize: Typography.size.xs,
+        fontWeight: Typography.weight.semibold,
+    },
     hotelName: {
         fontSize: Typography.size.xl,
         fontWeight: Typography.weight.bold,
@@ -370,11 +523,6 @@ const styles = StyleSheet.create({
         color: Colors.black,
         marginLeft: 4,
     },
-    reviewCount: {
-        fontSize: Typography.size.sm,
-        color: Colors.darkGray,
-        marginLeft: 4,
-    },
     locationRow: {
         flexDirection: "row",
         alignItems: "center",
@@ -384,33 +532,33 @@ const styles = StyleSheet.create({
         fontSize: Typography.size.sm,
         color: Colors.darkGray,
         marginLeft: 4,
-        textDecorationLine: "underline",
+    },
+    addressText: {
+        fontSize: Typography.size.sm,
+        color: Colors.darkGray,
+        marginTop: 4,
+        marginLeft: 20,
     },
     divider: {
         height: 1,
         backgroundColor: Colors.border,
         marginVertical: Spacing.lg,
     },
-    // Host
-    hostSection: {
+    // Quick info
+    quickInfoRow: {
+        flexDirection: "row",
+        flexWrap: "wrap",
+        gap: Spacing.lg,
+    },
+    quickInfoItem: {
         flexDirection: "row",
         alignItems: "center",
+        gap: Spacing.sm,
     },
-    hostAvatar: {
-        marginRight: Spacing.md,
-    },
-    hostInfo: {
-        flex: 1,
-    },
-    hostName: {
-        fontSize: Typography.size.md,
+    quickInfoLabel: {
+        fontSize: Typography.size.sm,
         fontWeight: Typography.weight.semibold,
         color: Colors.black,
-    },
-    hostMeta: {
-        fontSize: Typography.size.sm,
-        color: Colors.darkGray,
-        marginTop: 2,
     },
     // Sections
     section: {
@@ -422,26 +570,99 @@ const styles = StyleSheet.create({
         color: Colors.black,
         marginBottom: Spacing.md,
     },
-    highlightsGrid: {
-        flexDirection: "row",
-        flexWrap: "wrap",
-    },
-    highlightItem: {
-        flexDirection: "row",
-        alignItems: "center",
-        width: "50%",
-        paddingVertical: Spacing.sm,
-    },
-    highlightLabel: {
-        fontSize: Typography.size.sm,
-        color: Colors.black,
-        marginLeft: Spacing.sm,
-    },
     descriptionText: {
         fontSize: Typography.size.md,
         color: Colors.gray[700],
         lineHeight: 24,
     },
+    // Amenities
+    amenitiesGrid: {
+        flexDirection: "row",
+        flexWrap: "wrap",
+    },
+    amenityItem: {
+        flexDirection: "row",
+        alignItems: "center",
+        width: "50%",
+        paddingVertical: Spacing.sm,
+    },
+    amenityLabel: {
+        fontSize: Typography.size.sm,
+        color: Colors.black,
+        marginLeft: Spacing.sm,
+    },
+    // Rooms
+    roomsLoading: {
+        height: 120,
+        justifyContent: "center",
+        alignItems: "center",
+    },
+    roomsList: {
+        gap: Spacing.sm,
+    },
+    roomItem: {
+        flexDirection: "row",
+        backgroundColor: Colors.gray[100],
+        borderRadius: 14,
+        overflow: "hidden",
+    },
+    roomImage: {
+        width: 100,
+        height: 90,
+    },
+    roomImagePlaceholder: {
+        backgroundColor: Colors.gray[200],
+        justifyContent: "center",
+        alignItems: "center",
+    },
+    roomInfo: {
+        flex: 1,
+        padding: Spacing.md,
+        justifyContent: "center",
+    },
+    roomType: {
+        fontSize: Typography.size.xs,
+        fontWeight: Typography.weight.bold,
+        color: Colors.primary,
+        textTransform: "uppercase",
+        letterSpacing: 0.5,
+        marginBottom: 2,
+    },
+    roomTitle: {
+        fontSize: Typography.size.md,
+        fontWeight: Typography.weight.semibold,
+        color: Colors.black,
+        marginBottom: 4,
+    },
+    roomPrice: {
+        fontSize: Typography.size.sm,
+        fontWeight: Typography.weight.bold,
+        color: Colors.black,
+    },
+    noRooms: {
+        alignItems: "center",
+        paddingVertical: Spacing.xl,
+    },
+    noRoomsText: {
+        fontSize: Typography.size.sm,
+        color: Colors.darkGray,
+        marginTop: Spacing.sm,
+    },
+    // Contact
+    contactRow: {
+        flexDirection: "row",
+        alignItems: "center",
+        paddingVertical: 12,
+        borderBottomWidth: 0.5,
+        borderBottomColor: Colors.border,
+    },
+    contactText: {
+        flex: 1,
+        fontSize: Typography.size.sm,
+        color: Colors.black,
+        marginLeft: Spacing.sm,
+    },
+    // Rules
     ruleItem: {
         flexDirection: "row",
         alignItems: "center",

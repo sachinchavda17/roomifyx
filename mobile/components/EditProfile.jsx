@@ -75,7 +75,7 @@ const EditProfile = forwardRef(({ user }, ref) => {
   const handleLogout = async () => {
     await logout()
     ref.current?.close()
-    router.replace("/(auth)/login")
+    // router.replace("/(tabs)")
   }
 
   const handleDeleteAccount = () => {

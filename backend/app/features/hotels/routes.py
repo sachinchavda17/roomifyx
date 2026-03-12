@@ -36,8 +36,12 @@ def my_hotels_api(user=Depends(require_role("owner"))):
 
 
 @router.get("/public", tags=["Public"])
-def list_public_hotels(district: str | None = None):
-    return get_public_hotels(district)
+def list_public_hotels(
+    district: str | None = None,
+    search: str | None = None,
+    hotel_type: str | None = None,
+):
+    return get_public_hotels(district, search, hotel_type)
 
 
 @router.get("/public/{hotel_id}", tags=["Public"])

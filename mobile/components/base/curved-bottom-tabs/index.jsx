@@ -260,8 +260,10 @@ const CurvedBottomTabsCore = memo(
 const createStyles = ({ barHeight, textSize, fontFamily }) =>
   StyleSheet.create({
     wrapper: {
-      position: "relative",
+      position: "absolute",
       bottom: 0,
+      left: 0,
+      right: 0,
       alignSelf: "center",
       backgroundColor: "transparent",
       justifyContent: "space-between",
@@ -351,4 +353,3 @@ export const CurvedBottomTabs = memo(({ state, descriptors, navigation, gradient
 
   return <CurvedBottomTabsCore tabs={tabs} currentIndex={state.index} onPress={handlePress} gradient={gradients} />
 })
-

@@ -1,23 +1,55 @@
-import { View, Text, StyleSheet, TouchableOpacity } from "react-native"
+import { View, StyleSheet, TouchableOpacity } from "react-native"
+import { useState } from "react"
 import { Ionicons } from "@expo/vector-icons"
 import { Colors, Typography, Spacing } from "../constants/Theme"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
+import AnimatedInput from "./base/animated-input-bar"
 
-export default function SearchHeader() {
+const SEARCH_PLACEHOLDERS = ["Where to?", "Search by hotel name...", "Try a city or district...", "Find guest houses...", "Search resorts nearby..."]
+
+export default function SearchHeader({ onSearch, onFilter }) {
   const insets = useSafeAreaInsets()
+  const [text, setText] = useState("")
+
+  const handleChange = (value) => {
+    setText(value)
+    onSearch?.(value)
+  }
+
+  const handleClear = () => {
+    setText("")
+    onSearch?.("")
+  }
 
   return (
     <View style={[styles.container, { paddingTop: insets.top + 10 }]}>
-      <TouchableOpacity style={styles.searchBar} activeOpacity={0.8}>
-        <Ionicons name="search" size={20} color={Colors.primary} style={{ marginLeft: 15 }} />
-        <View style={styles.searchContent}>
-          <Text style={styles.searchTitle}>Where to?</Text>
-          <Text style={styles.searchSubtitle}>Anywhere • Any week • Add guests</Text>
-        </View>
-        <View style={styles.filterIcon}>
-          <Ionicons name="options-outline" size={20} color={Colors.black} />
-        </View>
-      </TouchableOpacity>
+      <View style={styles.searchBar}>
+        <Ionicons name="search" size={20} color={Colors.primary} style={styles.searchIcon} />
+        <AnimatedInput
+          placeholders={SEARCH_PLACEHOLDERS}
+          value={text}
+          onChangeText={handleChange}
+          animationInterval={3500}
+          returnKeyType="search"
+          selectionColor={Colors.primary}
+          containerStyle={styles.animatedContainer}
+          inputWrapperStyle={styles.animatedInputWrapper}
+          inputStyle={styles.inputStyle}
+          placeholderStyle={styles.placeholderStyle}
+          characterEnterDuration={250}
+          characterExitDuration={180}
+          characterDelayIncrement={25}
+        />
+        {text.length > 0 ? (
+          <TouchableOpacity onPress={handleClear} style={styles.clearButton}>
+            <Ionicons name="close-circle" size={18} color={Colors.darkGray} />
+          </TouchableOpacity>
+        ) : (
+          <TouchableOpacity onPress={onFilter} style={styles.filterIcon}>
+            <Ionicons name="options-outline" size={20} color={Colors.black} />
+          </TouchableOpacity>
+        )}
+      </View>
     </View>
   )
 }
@@ -41,19 +73,35 @@ const styles = StyleSheet.create({
     shadowRadius: 10,
     borderWidth: 0.5,
     borderColor: Colors.border,
+    overflow: "hidden",
   },
-  searchContent: {
-    flex: 1,
+  searchIcon: {
     marginLeft: 15,
   },
-  searchTitle: {
-    fontSize: Typography.size.sm,
-    fontWeight: Typography.weight.semibold,
-    color: Colors.black,
+  animatedContainer: {
+    flex: 1,
+    marginVertical: 0,
   },
-  searchSubtitle: {
-    fontSize: Typography.size.xs,
+  animatedInputWrapper: {
+    paddingHorizontal: 12,
+    paddingVertical: 0,
+    minHeight: 60,
+    justifyContent: "center",
+  },
+  inputStyle: {
+    fontSize: Typography.size.sm,
+    fontWeight: Typography.weight.medium,
+    color: Colors.black,
+    paddingVertical: 0,
+  },
+  placeholderStyle: {
+    fontSize: Typography.size.sm,
+    fontWeight: Typography.weight.medium,
     color: Colors.darkGray,
+  },
+  clearButton: {
+    marginRight: 15,
+    padding: 4,
   },
   filterIcon: {
     marginRight: 10,
