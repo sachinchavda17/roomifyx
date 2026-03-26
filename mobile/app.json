@@ -19,7 +19,8 @@
         "monochromeImage": "./assets/images/roomifyx.png"
       },
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "package": "com.sachin_chavda_dev.roomifyx"
     },
     "web": {
       "output": "static",
@@ -44,7 +45,12 @@
     "experiments": {
       "typedRoutes": false,
       "reactCompiler": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "05f609fa-061a-4446-a64a-4658c61dc350"
+      }
     }
   }
 }
-
