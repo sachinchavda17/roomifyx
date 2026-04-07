@@ -6,6 +6,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context"
 import { useState } from "react"
 import Animated, { useSharedValue, useAnimatedStyle, useAnimatedScrollHandler, interpolate, Extrapolation } from "react-native-reanimated"
 import { Colors, Spacing, Typography } from "../../constants/Theme"
+import { useThemeColors } from "../../components/organisms/theme-switch"
 import { HOTEL_DETAIL_CONTENT } from "../../constants/HotelDetailContent"
 import { useQuery } from "../../hooks/use-query"
 import { getPublicHotel } from "../../services/hotels"
@@ -42,6 +43,7 @@ export default function HotelDetailScreen() {
     const { id, name, price, rating, address, image } = useLocalSearchParams()
     const router = useRouter()
     const insets = useSafeAreaInsets()
+    const colors = useThemeColors()
     const scrollY = useSharedValue(0)
     const [liked, setLiked] = useState(false)
     const [activeImageIndex, setActiveImageIndex] = useState(0)
@@ -116,27 +118,27 @@ export default function HotelDetailScreen() {
 
     if (isLoading && !name) {
         return (
-            <View style={[styles.loadingContainer, { paddingTop: insets.top }]}>
+            <View style={[styles.loadingContainer, { paddingTop: insets.top, backgroundColor: colors.white }]}>
                 <CircularLoader />
             </View>
         )
     }
 
     return (
-        <View style={styles.container}>
+        <View style={[styles.container, { backgroundColor: colors.white }]}>
             <Stack.Screen options={{ headerShown: false }} />
 
             {/* Animated sticky header */}
-            <Animated.View style={[styles.stickyHeader, { paddingTop: insets.top }, headerOpacity]}>
+            <Animated.View style={[styles.stickyHeader, { paddingTop: insets.top, backgroundColor: colors.white, borderBottomColor: colors.border }, headerOpacity]}>
                 <View style={styles.stickyHeaderContent}>
                     <TouchableOpacity onPress={() => router.back()} style={styles.stickyHeaderButton}>
-                        <Ionicons name="arrow-back" size={22} color={Colors.black} />
+                        <Ionicons name="arrow-back" size={22} color={colors.black} />
                     </TouchableOpacity>
-                    <Text style={styles.stickyHeaderTitle} numberOfLines={1}>
+                    <Text style={[styles.stickyHeaderTitle, { color: colors.black }]} numberOfLines={1}>
                         {hotelData.name}
                     </Text>
                     <TouchableOpacity onPress={handleShare} style={styles.stickyHeaderButton}>
-                        <Ionicons name="share-outline" size={22} color={Colors.black} />
+                        <Ionicons name="share-outline" size={22} color={colors.black} />
                     </TouchableOpacity>
                 </View>
             </Animated.View>
@@ -165,14 +167,14 @@ export default function HotelDetailScreen() {
                     {/* Overlay buttons */}
                     <View style={[styles.imageOverlay, { top: insets.top + 10 }]}>
                         <TouchableOpacity style={styles.overlayButton} onPress={() => router.back()}>
-                            <Ionicons name="chevron-back" size={24} color={Colors.black} />
+                            <Ionicons name="chevron-back" size={24} color={colors.black} />
                         </TouchableOpacity>
                         <View style={styles.overlayRight}>
                             <TouchableOpacity style={styles.overlayButton} onPress={handleShare}>
-                                <Ionicons name="share-outline" size={22} color={Colors.black} />
+                                <Ionicons name="share-outline" size={22} color={colors.black} />
                             </TouchableOpacity>
                             <TouchableOpacity style={styles.overlayButton} onPress={() => setLiked(!liked)}>
-                                <Ionicons name={liked ? "heart" : "heart-outline"} size={22} color={liked ? Colors.red : Colors.black} />
+                                <Ionicons name={liked ? "heart" : "heart-outline"} size={22} color={liked ? colors.red : colors.black} />
                             </TouchableOpacity>
                         </View>
                     </View>
@@ -193,26 +195,26 @@ export default function HotelDetailScreen() {
                     <View style={styles.titleSection}>
                         {typeLabel ? (
                             <View style={styles.typeBadgeRow}>
-                                <View style={styles.typeBadge}>
+                                <View style={[styles.typeBadge, { backgroundColor: colors.primary }]}>
                                     <Text style={styles.typeBadgeText}>{typeLabel}</Text>
                                 </View>
                             </View>
                         ) : null}
-                        <Text style={styles.hotelName}>{hotelData.name}</Text>
+                        <Text style={[styles.hotelName, { color: colors.black }]}>{hotelData.name}</Text>
                         <View style={styles.ratingRow}>
-                            <Ionicons name="star" size={16} color={Colors.star} />
-                            <Text style={styles.ratingText}>{hotelData.rating}</Text>
+                            <Ionicons name="star" size={16} color={colors.star} />
+                            <Text style={[styles.ratingText, { color: colors.black }]}>{hotelData.rating}</Text>
                         </View>
                         <View style={styles.locationRow}>
-                            <Ionicons name="location-outline" size={16} color={Colors.darkGray} />
-                            <Text style={styles.locationText}>{location}</Text>
+                            <Ionicons name="location-outline" size={16} color={colors.darkGray} />
+                            <Text style={[styles.locationText, { color: colors.darkGray }]}>{location}</Text>
                         </View>
                         {hotelData.address && location !== hotelData.address && (
-                            <Text style={styles.addressText}>{hotelData.address}</Text>
+                            <Text style={[styles.addressText, { color: colors.darkGray }]}>{hotelData.address}</Text>
                         )}
                     </View>
 
-                    <View style={styles.divider} />
+                    <View style={[styles.divider, { backgroundColor: colors.border }]} />
 
                     {/* Quick info for guest houses */}
                     {!isMultiRoom && (hotelData.max_guests || hotelData.price) && (
@@ -220,18 +222,18 @@ export default function HotelDetailScreen() {
                             <View style={styles.quickInfoRow}>
                                 {hotelData.max_guests && (
                                     <View style={styles.quickInfoItem}>
-                                        <Ionicons name="people-outline" size={22} color={Colors.primary} />
-                                        <Text style={styles.quickInfoLabel}>Up to {hotelData.max_guests} guests</Text>
+                                        <Ionicons name="people-outline" size={22} color={colors.primary} />
+                                        <Text style={[styles.quickInfoLabel, { color: colors.black }]}>Up to {hotelData.max_guests} guests</Text>
                                     </View>
                                 )}
                                 {hotelData.price && (
                                     <View style={styles.quickInfoItem}>
-                                        <Ionicons name="pricetag-outline" size={22} color={Colors.primary} />
-                                        <Text style={styles.quickInfoLabel}>₹{hotelData.price} / night</Text>
+                                        <Ionicons name="pricetag-outline" size={22} color={colors.primary} />
+                                        <Text style={[styles.quickInfoLabel, { color: colors.black }]}>₹{hotelData.price} / night</Text>
                                     </View>
                                 )}
                             </View>
-                            <View style={styles.divider} />
+                            <View style={[styles.divider, { backgroundColor: colors.border }]} />
                         </>
                     )}
 
@@ -239,10 +241,10 @@ export default function HotelDetailScreen() {
                     {hotelData.description && (
                         <>
                             <View style={styles.section}>
-                                <Text style={styles.sectionTitle}>About this place</Text>
-                                <Text style={styles.descriptionText}>{hotelData.description}</Text>
+                                <Text style={[styles.sectionTitle, { color: colors.black }]}>About this place</Text>
+                                <Text style={[styles.descriptionText, { color: colors.gray[700] }]}>{hotelData.description}</Text>
                             </View>
-                            <View style={styles.divider} />
+                            <View style={[styles.divider, { backgroundColor: colors.border }]} />
                         </>
                     )}
 
@@ -250,21 +252,21 @@ export default function HotelDetailScreen() {
                     {hotelData.amenities?.length > 0 && (
                         <>
                             <View style={styles.section}>
-                                <Text style={styles.sectionTitle}>What this place offers</Text>
+                                <Text style={[styles.sectionTitle, { color: colors.black }]}>What this place offers</Text>
                                 <View style={styles.amenitiesGrid}>
                                     {hotelData.amenities.map((amenity, index) => (
                                         <View key={index} style={styles.amenityItem}>
                                             <Ionicons
                                                 name={AMENITY_ICONS[amenity] || "checkmark-circle-outline"}
                                                 size={24}
-                                                color={Colors.black}
+                                                color={colors.black}
                                             />
-                                            <Text style={styles.amenityLabel}>{amenity}</Text>
+                                            <Text style={[styles.amenityLabel, { color: colors.black }]}>{amenity}</Text>
                                         </View>
                                     ))}
                                 </View>
                             </View>
-                            <View style={styles.divider} />
+                            <View style={[styles.divider, { backgroundColor: colors.border }]} />
                         </>
                     )}
 
@@ -272,7 +274,7 @@ export default function HotelDetailScreen() {
                     {isMultiRoom && (
                         <>
                             <View style={styles.section}>
-                                <Text style={styles.sectionTitle}>Available Rooms</Text>
+                                <Text style={[styles.sectionTitle, { color: colors.black }]}>Available Rooms</Text>
                                 {roomsLoading ? (
                                     <View style={styles.roomsLoading}>
                                         <CircularLoader />
@@ -280,34 +282,34 @@ export default function HotelDetailScreen() {
                                 ) : availableRooms.length > 0 ? (
                                     <View style={styles.roomsList}>
                                         {availableRooms.map((room) => (
-                                            <View key={room.id} style={styles.roomItem}>
+                                            <View key={room.id} style={[styles.roomItem, { backgroundColor: colors.gray[100] }]}>
                                                 {room.images?.length > 0 ? (
                                                     <Image source={{ uri: room.images[0] }} style={styles.roomImage} contentFit="cover" transition={200} />
                                                 ) : (
-                                                    <View style={[styles.roomImage, styles.roomImagePlaceholder]}>
-                                                        <Ionicons name="bed-outline" size={24} color={Colors.darkGray} />
+                                                    <View style={[styles.roomImage, styles.roomImagePlaceholder, { backgroundColor: colors.gray[200] }]}>
+                                                        <Ionicons name="bed-outline" size={24} color={colors.darkGray} />
                                                     </View>
                                                 )}
                                                 <View style={styles.roomInfo}>
-                                                    <Text style={styles.roomType}>
+                                                    <Text style={[styles.roomType, { color: colors.primary }]}>
                                                         {(room.room_type || "Standard").charAt(0).toUpperCase() + (room.room_type || "standard").slice(1)}
                                                     </Text>
-                                                    <Text style={styles.roomTitle} numberOfLines={1}>
+                                                    <Text style={[styles.roomTitle, { color: colors.black }]} numberOfLines={1}>
                                                         {room.title || `Room ${room.room_number}`}
                                                     </Text>
-                                                    <Text style={styles.roomPrice}>₹{room.price} / night</Text>
+                                                    <Text style={[styles.roomPrice, { color: colors.black }]}>₹{room.price} / night</Text>
                                                 </View>
                                             </View>
                                         ))}
                                     </View>
                                 ) : (
                                     <View style={styles.noRooms}>
-                                        <Ionicons name="bed-outline" size={36} color={Colors.lightGray} />
-                                        <Text style={styles.noRoomsText}>No rooms available right now</Text>
+                                        <Ionicons name="bed-outline" size={36} color={colors.lightGray} />
+                                        <Text style={[styles.noRoomsText, { color: colors.darkGray }]}>No rooms available right now</Text>
                                     </View>
                                 )}
                             </View>
-                            <View style={styles.divider} />
+                            <View style={[styles.divider, { backgroundColor: colors.border }]} />
                         </>
                     )}
 
@@ -315,49 +317,49 @@ export default function HotelDetailScreen() {
                     {(hotelData.contact_phone || hotelData.contact_email) && (
                         <>
                             <View style={styles.section}>
-                                <Text style={styles.sectionTitle}>Contact</Text>
+                                <Text style={[styles.sectionTitle, { color: colors.black }]}>Contact</Text>
                                 {hotelData.contact_phone && (
                                     <TouchableOpacity
-                                        style={styles.contactRow}
+                                        style={[styles.contactRow, { borderBottomColor: colors.border }]}
                                         onPress={() => Linking.openURL(`tel:${hotelData.contact_phone}`)}
                                     >
-                                        <Ionicons name="call-outline" size={20} color={Colors.primary} />
-                                        <Text style={styles.contactText}>{hotelData.contact_phone}</Text>
-                                        <Ionicons name="chevron-forward" size={16} color={Colors.darkGray} />
+                                        <Ionicons name="call-outline" size={20} color={colors.primary} />
+                                        <Text style={[styles.contactText, { color: colors.black }]}>{hotelData.contact_phone}</Text>
+                                        <Ionicons name="chevron-forward" size={16} color={colors.darkGray} />
                                     </TouchableOpacity>
                                 )}
                                 {hotelData.contact_email && (
                                     <TouchableOpacity
-                                        style={styles.contactRow}
+                                        style={[styles.contactRow, { borderBottomColor: colors.border }]}
                                         onPress={() => Linking.openURL(`mailto:${hotelData.contact_email}`)}
                                     >
-                                        <Ionicons name="mail-outline" size={20} color={Colors.primary} />
-                                        <Text style={styles.contactText}>{hotelData.contact_email}</Text>
-                                        <Ionicons name="chevron-forward" size={16} color={Colors.darkGray} />
+                                        <Ionicons name="mail-outline" size={20} color={colors.primary} />
+                                        <Text style={[styles.contactText, { color: colors.black }]}>{hotelData.contact_email}</Text>
+                                        <Ionicons name="chevron-forward" size={16} color={colors.darkGray} />
                                     </TouchableOpacity>
                                 )}
                             </View>
-                            <View style={styles.divider} />
+                            <View style={[styles.divider, { backgroundColor: colors.border }]} />
                         </>
                     )}
 
                     {/* House Rules */}
                     <View style={styles.section}>
-                        <Text style={styles.sectionTitle}>House rules</Text>
+                        <Text style={[styles.sectionTitle, { color: colors.black }]}>House rules</Text>
                         {HOTEL_DETAIL_CONTENT.houseRules.map((rule, index) => (
                             <View key={index} style={styles.ruleItem}>
-                                <Ionicons name="checkmark-circle-outline" size={20} color={Colors.secondary} />
-                                <Text style={styles.ruleText}>{rule}</Text>
+                                <Ionicons name="checkmark-circle-outline" size={20} color={colors.secondary} />
+                                <Text style={[styles.ruleText, { color: colors.black }]}>{rule}</Text>
                             </View>
                         ))}
                     </View>
 
-                    <View style={styles.divider} />
+                    <View style={[styles.divider, { backgroundColor: colors.border }]} />
 
                     {/* Cancellation Policy */}
                     <View style={styles.section}>
-                        <Text style={styles.sectionTitle}>Cancellation policy</Text>
-                        <Text style={styles.descriptionText}>{HOTEL_DETAIL_CONTENT.cancellationPolicy}</Text>
+                        <Text style={[styles.sectionTitle, { color: colors.black }]}>Cancellation policy</Text>
+                        <Text style={[styles.descriptionText, { color: colors.gray[700] }]}>{HOTEL_DETAIL_CONTENT.cancellationPolicy}</Text>
                     </View>
 
                     {/* Bottom spacing for the booking bar */}
@@ -366,20 +368,20 @@ export default function HotelDetailScreen() {
             </Animated.ScrollView>
 
             {/* Bottom booking bar */}
-            <View style={[styles.bookingBar, { paddingBottom: insets.bottom || 16 }]}>
+            <View style={[styles.bookingBar, { paddingBottom: insets.bottom || 16, backgroundColor: colors.white, borderTopColor: colors.border }]}>
                 <View style={styles.priceContainer}>
                     {hotelData.price ? (
                         <>
-                            <Text style={styles.priceText}>
+                            <Text style={[styles.priceText, { color: colors.black }]}>
                                 {isMultiRoom ? "From " : ""}₹{hotelData.price}
                             </Text>
-                            <Text style={styles.priceNight}> / night</Text>
+                            <Text style={[styles.priceNight, { color: colors.darkGray }]}> / night</Text>
                         </>
                     ) : (
-                        <Text style={styles.priceNight}>Select dates & room</Text>
+                        <Text style={[styles.priceNight, { color: colors.darkGray }]}>Select dates & room</Text>
                     )}
                 </View>
-                <TouchableOpacity style={styles.reserveButton} activeOpacity={0.85} onPress={handleReserve}>
+                <TouchableOpacity style={[styles.reserveButton, { backgroundColor: colors.primary }]} activeOpacity={0.85} onPress={handleReserve}>
                     <Text style={styles.reserveButtonText}>Reserve</Text>
                 </TouchableOpacity>
             </View>

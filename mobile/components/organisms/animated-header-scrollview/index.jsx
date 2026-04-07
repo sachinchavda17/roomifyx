@@ -1,7 +1,7 @@
 import { BlurView } from "expo-blur"
 import MaskedView from "@react-native-masked-view/masked-view"
 import { LinearGradient } from "expo-linear-gradient"
-import React, { memo } from "react"
+import React, { memo, useMemo } from "react"
 import { Platform, StyleSheet, Text, View } from "react-native"
 import Animated, {
   Extrapolation,
@@ -15,7 +15,8 @@ import Animated, {
 } from "react-native-reanimated"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
 import { easeGradient } from "react-native-easing-gradient"
-import { Colors, HEADER_HEIGHT, MAX_BLUR_INTENSITY, spacing } from "./conf"
+import { useThemeColors } from "../theme-switch"
+import { HEADER_HEIGHT, MAX_BLUR_INTENSITY, spacing } from "./conf"
 
 const AnimatedBlurView = Animated.createAnimatedComponent(BlurView)
 
@@ -27,28 +28,37 @@ export const AnimatedHeaderScrollView = memo(
     rightComponent,
     showsVerticalScrollIndicator = false,
     contentContainerStyle,
-    headerBackgroundGradient = {
-      colors: ["rgba(255, 255, 255, 0.95)", "rgba(255, 255, 255, 0.9)", "transparent"],
-      start: { x: 0.5, y: 0 },
-      end: { x: 0.5, y: 1 },
-    },
-    headerBlurConfig = {
-      intensity: 10,
-      tint: Platform.OS === "ios" ? "systemThinMaterialLight" : "light",
-    },
+    headerBackgroundGradient: _headerBgGradient,
+    headerBlurConfig: _headerBlurConfig,
     smallTitleBlurIntensity = 90,
-    smallTitleBlurTint = "light",
-    maskGradientColors = {
-      start: "transparent",
-      middle: "rgba(255,255,255,0.99)",
-      end: "white",
-    },
+    smallTitleBlurTint: _smallTitleBlurTint,
+    maskGradientColors: _maskGradientColors,
     largeTitleBlurIntensity = 20,
     largeHeaderTitleStyle: _largeTitleStyle = { fontSize: 40 },
     largeHeaderSubtitleStyle,
     smallHeaderSubtitleStyle: _smallHeaderSubtitleStylez,
     smallHeaderTitleStyle,
   }) => {
+    const Colors = useThemeColors()
+    const isDark = Colors.white !== "#FFFFFF"
+
+    const headerBackgroundGradient = _headerBgGradient || {
+      colors: isDark
+        ? ["rgba(18, 18, 18, 0.95)", "rgba(18, 18, 18, 0.9)", "transparent"]
+        : ["rgba(255, 255, 255, 0.95)", "rgba(255, 255, 255, 0.9)", "transparent"],
+      start: { x: 0.5, y: 0 },
+      end: { x: 0.5, y: 1 },
+    }
+    const headerBlurConfig = _headerBlurConfig || {
+      intensity: 10,
+      tint: isDark ? "dark" : (Platform.OS === "ios" ? "systemThinMaterialLight" : "light"),
+    }
+    const smallTitleBlurTint = _smallTitleBlurTint || (isDark ? "dark" : "light")
+    const maskGradientColors = _maskGradientColors || {
+      start: "transparent",
+      middle: isDark ? "rgba(18,18,18,0.99)" : "rgba(255,255,255,0.99)",
+      end: isDark ? "#121212" : "white",
+    }
     const scrollY = useSharedValue(0)
     const insets = useSafeAreaInsets()
 
@@ -144,8 +154,17 @@ export const AnimatedHeaderScrollView = memo(
       extraColorStopsPerTransition: 20,
     })
 
+    const dynamicStyles = useMemo(() => ({
+      container: { backgroundColor: Colors.white },
+      webHeaderBackground: { backgroundColor: isDark ? "rgba(18,18,18,0.85)" : "rgba(255,255,255,0.85)" },
+      largeTitle: { color: Colors.black },
+      smallHeaderTitle: { color: Colors.black },
+      largeSubtitle: { color: Colors.gray[600] },
+      smallHeaderSubtitle: { color: Colors.gray[600] },
+    }), [Colors, isDark])
+
     return (
-      <View style={styles.container}>
+      <View style={[styles.container, dynamicStyles.container]}>
         <Animated.View
           style={[
             styles.headerBackgroundContainer,
@@ -179,7 +198,7 @@ export const AnimatedHeaderScrollView = memo(
               <BlurView intensity={headerBlurConfig.intensity} tint={headerBlurConfig.tint} style={[StyleSheet.absoluteFill]} />
             </MaskedView>
           ) : (
-            <Animated.View style={[StyleSheet.absoluteFill, styles.webHeaderBackground]} />
+            <Animated.View style={[StyleSheet.absoluteFill, dynamicStyles.webHeaderBackground]} />
           )}
         </Animated.View>
 
@@ -196,9 +215,9 @@ export const AnimatedHeaderScrollView = memo(
         >
           <View style={styles.fixedHeaderContent}>
             <View style={styles.fixedHeaderTextContainer}>
-              <Animated.Text style={[styles.smallHeaderTitle, smallHeaderTitleStyle]}>{largeTitle}</Animated.Text>
+              <Animated.Text style={[styles.smallHeaderTitle, dynamicStyles.smallHeaderTitle, smallHeaderTitleStyle]}>{largeTitle}</Animated.Text>
               {subtitle && (
-                <Animated.Text style={[styles.smallHeaderSubtitle, smallHeaderSubtitleStyle, _smallHeaderSubtitleStylez]}>{subtitle}</Animated.Text>
+                <Animated.Text style={[styles.smallHeaderSubtitle, dynamicStyles.smallHeaderSubtitle, smallHeaderSubtitleStyle, _smallHeaderSubtitleStylez]}>{subtitle}</Animated.Text>
               )}
             </View>
 
@@ -246,8 +265,8 @@ export const AnimatedHeaderScrollView = memo(
         >
           <Animated.View style={[styles.largeTitleContainer, largeTitleStyle]}>
             <View style={styles.largeTitleTextContainer}>
-              <Animated.Text style={[styles.largeTitle, _largeTitleStyle, animatedLargeTitleStylez]}>{largeTitle}</Animated.Text>
-              {subtitle && <Text style={[styles.largeSubtitle, largeHeaderSubtitleStyle]}>{subtitle}</Text>}
+              <Animated.Text style={[styles.largeTitle, dynamicStyles.largeTitle, _largeTitleStyle, animatedLargeTitleStylez]}>{largeTitle}</Animated.Text>
+              {subtitle && <Text style={[styles.largeSubtitle, dynamicStyles.largeSubtitle, largeHeaderSubtitleStyle]}>{subtitle}</Text>}
             </View>
           </Animated.View>
 
@@ -263,7 +282,6 @@ export default memo(AnimatedHeaderScrollView)
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.white,
   },
   headerBackgroundContainer: {
     position: "absolute",
@@ -303,12 +321,10 @@ const styles = StyleSheet.create({
   },
   smallHeaderTitle: {
     fontSize: 24,
-    color: Colors.black,
     textAlign: "center",
   },
   smallHeaderSubtitle: {
     fontSize: 12,
-    color: Colors.gray[600],
     textAlign: "center",
   },
   rightComponentContainer: {
@@ -341,13 +357,11 @@ const styles = StyleSheet.create({
   },
   largeTitle: {
     fontSize: 40,
-    color: Colors.black,
     letterSpacing: -0.5,
     paddingTop: 5,
   },
   largeSubtitle: {
     fontSize: 18,
-    color: Colors.gray[600],
     marginTop: spacing.xs,
     paddingTop: 5,
   },

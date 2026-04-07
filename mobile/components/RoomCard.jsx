@@ -3,6 +3,7 @@ import { Image } from "expo-image"
 import { Ionicons } from "@expo/vector-icons"
 import { useRouter } from "expo-router"
 import { Colors, Typography, Spacing } from "../constants/Theme"
+import { useThemeColors } from "./organisms/theme-switch"
 
 const HOTEL_TYPE_LABELS = {
   hotel: "Hotel",
@@ -15,6 +16,7 @@ const PLACEHOLDER_IMAGE = "https://images.unsplash.com/photo-1566073771259-6a850
 
 export default function RoomCard({ item }) {
   const router = useRouter()
+  const colors = useThemeColors()
 
   const imageUri = item.images?.length > 0 ? item.images[0] : PLACEHOLDER_IMAGE
   const typeLabel = HOTEL_TYPE_LABELS[item.hotel_type] || item.hotel_type
@@ -46,28 +48,28 @@ export default function RoomCard({ item }) {
       </View>
       <View style={styles.infoContainer}>
         <View style={styles.headerRow}>
-          <Text style={styles.title} numberOfLines={1}>
+          <Text style={[styles.title, { color: colors.black }]} numberOfLines={1}>
             {item.name}
           </Text>
           <View style={styles.ratingRow}>
-            <Ionicons name="star" size={14} color={Colors.star} />
-            <Text style={styles.ratingText}>{item.rating}</Text>
+            <Ionicons name="star" size={14} color={colors.star} />
+            <Text style={[styles.ratingText, { color: colors.black }]}>{item.rating}</Text>
           </View>
         </View>
-        <Text style={styles.location} numberOfLines={1}>
+        <Text style={[styles.location, { color: colors.darkGray }]} numberOfLines={1}>
           {location}
         </Text>
         <View style={styles.priceContainer}>
           {item.price ? (
             <>
-              <Text style={styles.price}>
+              <Text style={[styles.price, { color: colors.black }]}>
                 {item.hotel_type === "hotel" || item.hotel_type === "resort" ? "From " : ""}
                 ₹{item.price}
               </Text>
-              <Text style={styles.night}> / night</Text>
+              <Text style={[styles.night, { color: colors.black }]}> / night</Text>
             </>
           ) : (
-            <Text style={styles.priceUnavailable}>Price on request</Text>
+            <Text style={[styles.priceUnavailable, { color: colors.darkGray }]}>Price on request</Text>
           )}
         </View>
       </View>

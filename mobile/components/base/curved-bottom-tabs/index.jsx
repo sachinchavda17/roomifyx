@@ -4,6 +4,7 @@ import Animated, { useSharedValue, useAnimatedStyle, withSpring } from "react-na
 import Svg, { Circle, Defs, LinearGradient as SvgGradient, Path, Stop } from "react-native-svg"
 import { calculateTabPosition, processGradient, VIEWPORT_HEIGHT, VIEWPORT_WIDTH } from "./helper"
 import { Colors } from "../../../constants/Theme"
+import { useThemeColors } from "../../organisms/theme-switch"
 
 const FloatingButtonComponent = memo(({ icon, gradient, scale, shadow, badge }) => {
   const buttonSize = VIEWPORT_HEIGHT * scale
@@ -318,7 +319,10 @@ const createStyles = ({ barHeight, textSize, fontFamily }) =>
     },
   })
 
-export const CurvedBottomTabs = memo(({ state, descriptors, navigation, gradients = [Colors.lightGray, Colors.darkGray] }) => {
+export const CurvedBottomTabs = memo(({ state, descriptors, navigation, gradients }) => {
+  const themeColors = useThemeColors()
+  const resolvedGradients = gradients || [themeColors.lightGray, themeColors.darkGray]
+
   const tabs = state.routes.map((route, index) => {
     const { options } = descriptors[route.key]
     const isActive = state.index === index
@@ -329,7 +333,7 @@ export const CurvedBottomTabs = memo(({ state, descriptors, navigation, gradient
       icon: options?.tabBarIcon
         ? options.tabBarIcon({
           focused: isActive,
-          color: isActive ? Colors.white : Colors.black,
+          color: isActive ? "#FFFFFF" : themeColors.black,
           size: 24,
         })
         : null,
@@ -351,5 +355,5 @@ export const CurvedBottomTabs = memo(({ state, descriptors, navigation, gradient
     }
   }
 
-  return <CurvedBottomTabsCore tabs={tabs} currentIndex={state.index} onPress={handlePress} gradient={gradients} />
+  return <CurvedBottomTabsCore tabs={tabs} currentIndex={state.index} onPress={handlePress} gradient={resolvedGradients} labelColor={themeColors.black} />
 })

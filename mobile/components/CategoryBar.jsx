@@ -1,18 +1,20 @@
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from "react-native"
 import { Ionicons } from "@expo/vector-icons"
 import { Colors, Typography, Spacing } from "../constants/Theme"
+import { useThemeColors } from "./organisms/theme-switch"
 
 export default function CategoryBar({ categories, activeCategory, onCategoryChange }) {
+  const colors = useThemeColors()
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { borderBottomColor: colors.border, backgroundColor: colors.white }]}>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
         {categories.map((cat) => {
           const isActive = activeCategory === cat.name
           return (
             <TouchableOpacity key={cat.name} style={styles.categoryItem} onPress={() => onCategoryChange(cat.name)}>
-              <Ionicons name={cat.icon} size={24} color={isActive ? Colors.black : Colors.darkGray} />
-              <Text style={[styles.categoryText, isActive && styles.activeCategoryText]}>{cat.name}</Text>
-              {isActive && <View style={styles.activeIndicator} />}
+              <Ionicons name={cat.icon} size={24} color={isActive ? colors.black : colors.darkGray} />
+              <Text style={[styles.categoryText, { color: colors.darkGray }, isActive && { color: colors.black }]}>{cat.name}</Text>
+              {isActive && <View style={[styles.activeIndicator, { backgroundColor: colors.black }]} />}
             </TouchableOpacity>
           )
         })}

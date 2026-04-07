@@ -1,24 +1,10 @@
+import { Colors as AppColors } from "../../../constants/Theme"
+
 const HEADER_HEIGHT = 60
 const MAX_BLUR_INTENSITY = 30
 
-const Colors = {
-  black: "#222222",
-  white: "#FFFFFF",
-  primary: "#FF385C",
-  gray: {
-    100: "#F5F5F5",
-    200: "#E5E5E5",
-    300: "#D4D4D4",
-    400: "#A3A3A3",
-    500: "#717171",
-    600: "#525252",
-    700: "#404040",
-    800: "#222222",
-    900: "#171717",
-  },
-  border: "#EEEEEE",
-  borderDark: "#222222",
-}
+// Re-export the app's Colors so this component stays in sync with the theme
+const Colors = AppColors
 
 const spacing = {
   xs: 4,

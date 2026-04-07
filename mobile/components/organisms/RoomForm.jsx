@@ -7,6 +7,7 @@ import InputText from "../InputText"
 import BottomSheetSelect from "../BottomSheetSelect"
 import { COMMON_AMENITIES, ROOM_TYPES } from "@/constants/hotel"
 import { Button } from "../base/button"
+import { useThemeColors } from "../organisms/theme-switch"
 
 export default function RoomForm({
   defaultValues = {},
@@ -16,6 +17,7 @@ export default function RoomForm({
   submitIcon = "save-outline",
   footerContent = null,
 }) {
+  const colors = useThemeColors()
   const {
     control,
     handleSubmit,
@@ -73,7 +75,7 @@ export default function RoomForm({
 
   return (
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : "height"}>
-      <ScrollView style={styles.container} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+      <ScrollView style={[styles.container, { backgroundColor: colors.white }]} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
         {/* Room Number + Room Type */}
         <View style={styles.row}>
           <InputText
@@ -184,12 +186,12 @@ export default function RoomForm({
           <Text style={styles.sectionLabel}>Room Images</Text>
           <View style={[styles.row, { alignItems: "center" }]}>
             <TextInput
-              style={[styles.urlInput, { flex: 1, marginRight: Spacing.sm }]}
+              style={[styles.urlInput, { flex: 1, marginRight: Spacing.sm, color: colors.black, borderColor: colors.lightGray, backgroundColor: colors.white }]}
               placeholder="Paste image URL"
               value={tempImage}
               onChangeText={setTempImage}
               autoCapitalize="none"
-              placeholderTextColor={Colors.darkGray}
+              placeholderTextColor={colors.darkGray}
             />
             <TouchableOpacity onPress={handleAddImage} style={styles.addImageButton}>
               <Ionicons name="add" size={24} color={Colors.white} />

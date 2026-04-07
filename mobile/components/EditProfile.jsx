@@ -10,12 +10,14 @@ import { useMutation } from "../hooks/use-mutation"
 import { updateProfile, deleteAccount } from "../services/user"
 import Button from "./base/button"
 import { Avatar } from "./base/avatar"
+import { useThemeColors } from "./organisms/theme-switch"
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window")
 
 const EditProfile = forwardRef(({ user }, ref) => {
   const { logout } = useAuth()
   const router = useRouter()
+  const colors = useThemeColors()
   const [isEditing, setIsEditing] = useState(false)
   const [formData, setFormData] = useState({
     firstName: user?.firstName || "",
@@ -94,18 +96,18 @@ const EditProfile = forwardRef(({ user }, ref) => {
   const displayName = `${formData.firstName} ${formData.lastName}`.trim() || "Guest"
 
   return (
-    <BottomSheet ref={ref} snapPoints={["60%", "90%"]} backgroundColor={Colors.white} backdropOpacity={0.6} borderRadius={32}>
+    <BottomSheet ref={ref} snapPoints={["60%", "90%"]} backgroundColor={colors.white} backdropOpacity={0.6} borderRadius={32}>
       <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={{ flex: 1 }}>
-        <ScrollView style={styles.sheet}>
+        <ScrollView style={[styles.sheet, { backgroundColor: colors.white }]}>
           {/* Header Section */}
           <View style={styles.header}>
-            <Avatar image={{ name: displayName }} size={90} showBorder={true} borderColor={Colors.border} borderWidth={2} />
-            <Text style={styles.name}>{displayName}</Text>
-            <Text style={styles.email}>{formData.email || "Guest User"}</Text>
+            <Avatar image={{ name: displayName }} size={90} showBorder={true} borderColor={colors.border} borderWidth={2} />
+            <Text style={[styles.name, { color: colors.black }]}>{displayName}</Text>
+            <Text style={[styles.email, { color: colors.gray[500] }]}>{formData.email || "Guest User"}</Text>
           </View>
 
           {/* Action Row */}
-          <View style={styles.actionRow}>
+          <View style={[styles.actionRow, { backgroundColor: colors.gray[100], borderColor: colors.border }]}>
             {isEditing ? (
               <>
                 <Pressable style={[styles.actionItem, styles.activeActionItem]} onPress={handleSave} disabled={updateMutation.isLoading}>
@@ -121,8 +123,8 @@ const EditProfile = forwardRef(({ user }, ref) => {
             ) : (
               <>
                 <Pressable style={styles.actionItem} onPress={() => setIsEditing(true)}>
-                  <Ionicons name="create-outline" size={22} color={Colors.black} />
-                  <Text style={styles.actionText}>Edit Profile</Text>
+                  <Ionicons name="create-outline" size={22} color={colors.black} />
+                  <Text style={[styles.actionText, { color: colors.black }]}>Edit Profile</Text>
                 </Pressable>
                 <View style={styles.actionDivider} />
                 <Pressable style={styles.actionItem} onPress={handleLogout}>
@@ -167,7 +169,7 @@ const EditProfile = forwardRef(({ user }, ref) => {
 
           {/* Danger Zone Section */}
           <View style={[styles.section, { paddingBottom: 100 }]}>
-            <Text style={[styles.sectionTitle, { color: "#ff453a" }]}>Danger Zone</Text>
+            <Text style={[styles.sectionTitle, { color: colors.red }]}>Danger Zone</Text>
             <Button
               onPress={handleDeleteAccount}
               isLoading={deleteMutation.isLoading}

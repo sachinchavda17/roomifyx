@@ -5,12 +5,14 @@ import { useQuery } from "../../hooks/use-query"
 import { useMutation } from "../../hooks/use-mutation"
 import { getPublicHotel, updateHotel } from "../../services/hotels"
 import { Colors, Spacing, Typography } from "../../constants/Theme"
+import { useThemeColors } from "../../components/organisms/theme-switch"
 import HotelForm from "../../components/organisms/HotelForm"
 import { Ionicons } from "@expo/vector-icons"
 import { MULTI_ROOM_TYPES } from "../../constants/hotel"
 import Button from "../../components/base/button"
 
 export default function EditHotelScreen() {
+  const colors = useThemeColors()
   const { id } = useLocalSearchParams()
   const router = useRouter()
   const queryClient = useQueryClient()
@@ -38,7 +40,7 @@ export default function EditHotelScreen() {
   if (isLoading || !data) {
     return (
       <View style={styles.center}>
-        <ActivityIndicator size="large" color={Colors.primary} />
+        <ActivityIndicator size="large" color={colors.primary} />
       </View>
     )
   }
@@ -65,14 +67,14 @@ export default function EditHotelScreen() {
 
         <Button
           onPress={() => router.push({ pathname: "/rooms", params: { hotel_id: id } })}
-          backgroundColor={Colors.secondary}
+          backgroundColor={colors.secondary}
           width="100%"
           height={50}
           borderRadius={12}
         >
-          <Ionicons name="bed-outline" size={20} color={Colors.white} style={{ marginRight: Spacing.sm }} />
+          <Ionicons name="bed-outline" size={20} color={colors.white} style={{ marginRight: Spacing.sm }} />
           <Text style={styles.manageRoomsText}>Manage Rooms</Text>
-          <Ionicons name="chevron-forward" size={18} color={Colors.white} style={{ marginLeft: "auto" }} />
+          <Ionicons name="chevron-forward" size={18} color={colors.white} style={{ marginLeft: "auto" }} />
         </Button>
       </View>
     )

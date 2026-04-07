@@ -2,6 +2,7 @@ import { View, FlatList, Text, StyleSheet, Dimensions } from "react-native"
 import { useState, useCallback } from "react"
 import { Ionicons } from "@expo/vector-icons"
 import { Colors, Spacing, Typography } from "../../constants/Theme"
+import { useThemeColors } from "../../components/organisms/theme-switch"
 import { CATEGORIES } from "../../constants/MockData"
 import RoomCard from "../../components/RoomCard"
 import SearchHeader from "../../components/SearchHeader"
@@ -12,6 +13,7 @@ import { getPublicHotels } from "../../services/hotels"
 import { CircularLoader } from "../../components/molecules/circular-loader"
 
 export default function ExploreScreen() {
+  const colors = useThemeColors()
   const [activeCategory, setActiveCategory] = useState("All")
   const [search, setSearch] = useState("")
   const [debouncedSearch, setDebouncedSearch] = useState("")
@@ -50,7 +52,7 @@ export default function ExploreScreen() {
   const isEmpty = !isLoading && hotels.length === 0
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.white }]}>
       <SearchHeader onSearch={handleSearch} onFilter={() => setFilterVisible(true)} />
       <CategoryBar categories={CATEGORIES} activeCategory={activeCategory} onCategoryChange={setActiveCategory} />
 
@@ -60,9 +62,9 @@ export default function ExploreScreen() {
         </View>
       ) : isEmpty ? (
         <View style={styles.centered}>
-          <Ionicons name="search-outline" size={56} color={Colors.lightGray} />
-          <Text style={styles.emptyTitle}>No hotels found</Text>
-          <Text style={styles.emptySubtitle}>
+          <Ionicons name="search-outline" size={56} color={colors.lightGray} />
+          <Text style={[styles.emptyTitle, { color: colors.black }]}>No hotels found</Text>
+          <Text style={[styles.emptySubtitle, { color: colors.darkGray }]}>
             {debouncedSearch
               ? `No results for "${debouncedSearch}"`
               : "Try a different category or check back later"}

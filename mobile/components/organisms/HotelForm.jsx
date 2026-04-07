@@ -8,8 +8,10 @@ import BottomSheetSelect from "../BottomSheetSelect"
 import { HOTEL_TYPES, COMMON_AMENITIES } from "../../constants/hotel"
 import Button from "../base/button"
 import { useLocalSearchParams, useRouter } from "expo-router"
+import { useThemeColors } from "../organisms/theme-switch"
 
 export default function HotelForm({ defaultValues = null, onSubmit, isLoading = false, isEdit = false, footerContent = null }) {
+  const colors = useThemeColors()
   const {
     control,
     handleSubmit,
@@ -70,7 +72,7 @@ export default function HotelForm({ defaultValues = null, onSubmit, isLoading = 
 
   return (
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : "height"}>
-      <ScrollView style={styles.container} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+      <ScrollView style={[styles.container, { backgroundColor: colors.white }]} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
         {/* Hotel Name */}
         <InputText label="Hotel Name" placeholder="Grand Resort" control={control} name="name" isRequired error={errors.name?.message} />
 
@@ -240,12 +242,12 @@ export default function HotelForm({ defaultValues = null, onSubmit, isLoading = 
           <Text style={styles.label}>Images</Text>
           <View style={[styles.row, { alignItems: "center" }]}>
             <TextInput
-              style={[styles.urlInput, { flex: 1, marginRight: Spacing.sm }]}
+              style={[styles.urlInput, { flex: 1, marginRight: Spacing.sm, color: colors.black, borderColor: colors.lightGray, backgroundColor: colors.white }]}
               placeholder="Enter image URL"
               value={tempImage}
               onChangeText={setTempImage}
               autoCapitalize="none"
-              placeholderTextColor={Colors.darkGray}
+              placeholderTextColor={colors.darkGray}
             />
             <TouchableOpacity onPress={handleAddImage} style={styles.addButton}>
               <Ionicons name="add" size={24} color={Colors.white} />

@@ -3,11 +3,13 @@ import { useState } from "react"
 import { Ionicons } from "@expo/vector-icons"
 import { Colors, Typography, Spacing } from "../constants/Theme"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
+import { useThemeColors } from "./organisms/theme-switch"
 
 const DISTRICTS = ["Colombo", "Kandy", "Galle", "Ella", "Nuwara Eliya", "Sigiriya", "Trincomalee", "Jaffna", "Anuradhapura", "Matara"]
 
 export default function FilterModal({ visible, onClose, onApply, initialDistrict = "" }) {
   const insets = useSafeAreaInsets()
+  const colors = useThemeColors()
   const [district, setDistrict] = useState(initialDistrict)
 
   const handleApply = () => {
@@ -28,22 +30,22 @@ export default function FilterModal({ visible, onClose, onApply, initialDistrict
   return (
     <Modal visible={visible} animationType="slide" transparent>
       <View style={styles.overlay}>
-        <View style={[styles.sheet, { paddingBottom: insets.bottom + Spacing.lg }]}>
+        <View style={[styles.sheet, { paddingBottom: insets.bottom + Spacing.lg, backgroundColor: colors.white }]}>
           <View style={styles.header}>
             <TouchableOpacity onPress={onClose}>
-              <Ionicons name="close" size={24} color={Colors.black} />
+              <Ionicons name="close" size={24} color={colors.black} />
             </TouchableOpacity>
-            <Text style={styles.title}>Filters</Text>
+            <Text style={[styles.title, { color: colors.black }]}>Filters</Text>
             <TouchableOpacity onPress={handleClear}>
-              <Text style={styles.clearText}>Clear all</Text>
+              <Text style={[styles.clearText, { color: colors.primary }]}>Clear all</Text>
             </TouchableOpacity>
           </View>
 
-          <Text style={styles.sectionTitle}>District</Text>
+          <Text style={[styles.sectionTitle, { color: colors.black }]}>District</Text>
           <TextInput
-            style={styles.input}
+            style={[styles.input, { borderColor: colors.border, color: colors.black }]}
             placeholder="Type a district name..."
-            placeholderTextColor={Colors.darkGray}
+            placeholderTextColor={colors.darkGray}
             value={district}
             onChangeText={setDistrict}
           />
@@ -52,15 +54,15 @@ export default function FilterModal({ visible, onClose, onApply, initialDistrict
             {DISTRICTS.map((name) => (
               <TouchableOpacity
                 key={name}
-                style={[styles.chip, district === name && styles.chipActive]}
+                style={[styles.chip, { borderColor: colors.border, backgroundColor: colors.white }, district === name && { backgroundColor: colors.primary, borderColor: colors.primary }]}
                 onPress={() => selectDistrict(name)}
               >
-                <Text style={[styles.chipText, district === name && styles.chipTextActive]}>{name}</Text>
+                <Text style={[styles.chipText, { color: colors.darkGray }, district === name && { color: colors.white }]}>{name}</Text>
               </TouchableOpacity>
             ))}
           </View>
 
-          <TouchableOpacity style={styles.applyButton} onPress={handleApply}>
+          <TouchableOpacity style={[styles.applyButton, { backgroundColor: colors.primary }]} onPress={handleApply}>
             <Text style={styles.applyText}>Show results</Text>
           </TouchableOpacity>
         </View>

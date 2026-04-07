@@ -1,15 +1,18 @@
 import { Stack } from "expo-router"
-import { Colors } from "../../constants/Theme"
+import { useThemeColors } from "../../components/organisms/theme-switch"
 
 export default function RoomsLayout() {
+  const colors = useThemeColors()
+
   return (
     <Stack
       screenOptions={{
         headerStyle: {
-          backgroundColor: Colors.white,
+          backgroundColor: colors.white,
         },
         headerShadowVisible: false,
-        headerTintColor: Colors.black,
+        headerTintColor: colors.black,
+        contentStyle: { backgroundColor: colors.white },
       }}
     >
       <Stack.Screen name="index" options={{ title: "Manage Rooms" }} />

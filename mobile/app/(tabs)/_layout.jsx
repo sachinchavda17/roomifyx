@@ -1,12 +1,14 @@
 import { Tabs } from "expo-router"
 import { Ionicons } from "@expo/vector-icons"
-import { Colors } from "../../constants/Theme"
 import { CurvedBottomTabs } from "../../components/base/curved-bottom-tabs"
+import { useThemeColors } from "../../components/organisms/theme-switch"
 
 export default function TabLayout() {
+  const colors = useThemeColors()
+
   return (
     <Tabs
-      tabBar={(props) => <CurvedBottomTabs {...props} />}
+      tabBar={(props) => <CurvedBottomTabs {...props} gradients={[colors.lightGray, colors.darkGray]} />}
       screenOptions={{
         headerShown: false,
         tabBarStyle: {
@@ -42,4 +44,3 @@ export default function TabLayout() {
     </Tabs>
   )
 }
-

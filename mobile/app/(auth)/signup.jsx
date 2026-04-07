@@ -2,6 +2,7 @@ import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Keyboa
 import { useState } from "react"
 import { useRouter, Link } from "expo-router"
 import { Colors, Spacing, Typography } from "../../constants/Theme"
+import { useThemeColors } from "../../components/organisms/theme-switch"
 import { useMutation } from "../../hooks/use-mutation"
 import { useAuth } from "../../context/AuthContext"
 import { signup } from "../../services/auth"
@@ -12,6 +13,7 @@ import { CircularLoader } from "../../components/molecules/circular-loader"
 import AnimatedHeaderScrollview from "../../components/organisms/animated-header-scrollview"
 
 export default function SignupScreen() {
+  const colors = useThemeColors()
   const { login: handleAuthLogin } = useAuth()
   const [firstName, setFirstName] = useState("")
   const [lastName, setLastName] = useState("")
@@ -38,14 +40,10 @@ export default function SignupScreen() {
   })
 
   return (
-    <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={styles.container}>
+    <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={[styles.container, { backgroundColor: colors.white }]}>
       <AnimatedHeaderScrollview
         largeTitle="Create an account"
         subtitle="Join RoomifyX to manage your bookings."
-        headerBlurConfig={{
-          intensity: 20,
-          tint: "light",
-        }}
       >
         <View style={styles.form}>
           <View style={styles.row}>
@@ -72,7 +70,7 @@ export default function SignupScreen() {
 
           <InputText label="Password" placeholder="At least 8 characters" value={password} onChangeText={setPassword} secureTextEntry isRequired />
 
-          <TouchableOpacity style={[styles.signupButton, isLoading && { opacity: 0.8 }]} onPress={handleSignup} disabled={isLoading}>
+          <TouchableOpacity style={[styles.signupButton, { backgroundColor: colors.primary, shadowColor: colors.primary }, isLoading && { opacity: 0.8 }]} onPress={handleSignup} disabled={isLoading}>
             {isLoading ? (
               <CircularLoader size={20} strokeWidth={2.5} activeColor={Colors.white} />
             ) : (
@@ -82,10 +80,10 @@ export default function SignupScreen() {
         </View>
 
         <View style={styles.footer}>
-          <Text style={styles.footerText}>Already have an account? </Text>
+          <Text style={[styles.footerText, { color: colors.darkGray }]}>Already have an account? </Text>
           <Link href="/(auth)/login" asChild>
             <TouchableOpacity>
-              <Text style={styles.loginLink}>Log in</Text>
+              <Text style={[styles.loginLink, { color: colors.black }]}>Log in</Text>
             </TouchableOpacity>
           </Link>
         </View>

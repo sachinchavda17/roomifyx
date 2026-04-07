@@ -4,11 +4,13 @@ import { Ionicons } from "@expo/vector-icons"
 import { Colors, Typography, Spacing } from "../constants/Theme"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
 import AnimatedInput from "./base/animated-input-bar"
+import { useThemeColors } from "./organisms/theme-switch"
 
 const SEARCH_PLACEHOLDERS = ["Where to?", "Search by hotel name...", "Try a city or district...", "Find guest houses...", "Search resorts nearby..."]
 
 export default function SearchHeader({ onSearch, onFilter }) {
   const insets = useSafeAreaInsets()
+  const colors = useThemeColors()
   const [text, setText] = useState("")
 
   const handleChange = (value) => {
@@ -22,31 +24,31 @@ export default function SearchHeader({ onSearch, onFilter }) {
   }
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top + 10 }]}>
-      <View style={styles.searchBar}>
-        <Ionicons name="search" size={20} color={Colors.primary} style={styles.searchIcon} />
+    <View style={[styles.container, { paddingTop: insets.top + 10, backgroundColor: colors.white }]}>
+      <View style={[styles.searchBar, { backgroundColor: colors.white, borderColor: colors.border }]}>
+        <Ionicons name="search" size={20} color={colors.primary} style={styles.searchIcon} />
         <AnimatedInput
           placeholders={SEARCH_PLACEHOLDERS}
           value={text}
           onChangeText={handleChange}
           animationInterval={3500}
           returnKeyType="search"
-          selectionColor={Colors.primary}
+          selectionColor={colors.primary}
           containerStyle={styles.animatedContainer}
           inputWrapperStyle={styles.animatedInputWrapper}
-          inputStyle={styles.inputStyle}
-          placeholderStyle={styles.placeholderStyle}
+          inputStyle={[styles.inputStyle, { color: colors.black }]}
+          placeholderStyle={[styles.placeholderStyle, { color: colors.darkGray }]}
           characterEnterDuration={250}
           characterExitDuration={180}
           characterDelayIncrement={25}
         />
         {text.length > 0 ? (
           <TouchableOpacity onPress={handleClear} style={styles.clearButton}>
-            <Ionicons name="close-circle" size={18} color={Colors.darkGray} />
+            <Ionicons name="close-circle" size={18} color={colors.darkGray} />
           </TouchableOpacity>
         ) : (
-          <TouchableOpacity onPress={onFilter} style={styles.filterIcon}>
-            <Ionicons name="options-outline" size={20} color={Colors.black} />
+          <TouchableOpacity onPress={onFilter} style={[styles.filterIcon, { borderColor: colors.lightGray }]}>
+            <Ionicons name="options-outline" size={20} color={colors.black} />
           </TouchableOpacity>
         )}
       </View>

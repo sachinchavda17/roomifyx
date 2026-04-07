@@ -6,6 +6,7 @@ import { Ionicons } from "@expo/vector-icons"
 import { Link, useRouter, Stack } from "expo-router"
 import { Colors, Spacing, Typography } from "../../constants/Theme"
 import { HOTEL_TYPES, MULTI_ROOM_TYPES } from "../../constants/hotel"
+import { useThemeColors } from "../../components/organisms/theme-switch"
 
 const getHotelTypeLabel = (type) => {
   const found = HOTEL_TYPES.find((t) => t.value === type)
@@ -13,6 +14,7 @@ const getHotelTypeLabel = (type) => {
 }
 
 export default function MyHotelsScreen() {
+  const colors = useThemeColors()
   const router = useRouter()
   const {
     data: hotels,
@@ -36,38 +38,38 @@ export default function MyHotelsScreen() {
   }
 
   const renderItem = ({ item }) => (
-    <View style={styles.card}>
+    <View style={[styles.card, { backgroundColor: colors.white, borderColor: colors.lightGray }]}>
       <View style={styles.cardContent}>
         <View style={styles.cardHeader}>
-          <Text style={styles.cardTitle} numberOfLines={1}>{item.name}</Text>
+          <Text style={[styles.cardTitle, { color: colors.black }]} numberOfLines={1}>{item.name}</Text>
           {item.hotel_type ? (
-            <View style={styles.typeBadge}>
-              <Text style={styles.typeBadgeText}>{getHotelTypeLabel(item.hotel_type)}</Text>
+            <View style={[styles.typeBadge, { backgroundColor: colors.primary + "18" }]}>
+              <Text style={[styles.typeBadgeText, { color: colors.primary }]}>{getHotelTypeLabel(item.hotel_type)}</Text>
             </View>
           ) : null}
         </View>
-        <Text style={styles.cardSubtitle} numberOfLines={1}>
+        <Text style={[styles.cardSubtitle, { color: colors.darkGray }]} numberOfLines={1}>
           {[item.district, item.state].filter(Boolean).join(", ") || item.address}
         </Text>
       </View>
       <View style={styles.actions}>
         <Link href={`/hotels/${item.id}`} asChild>
           <TouchableOpacity style={styles.actionButton}>
-            <Ionicons name="create-outline" size={20} color={Colors.primary} />
+            <Ionicons name="create-outline" size={20} color={colors.primary} />
           </TouchableOpacity>
         </Link>
         <TouchableOpacity style={styles.actionButton} onPress={() => handleDelete(item.id)}>
-          <Ionicons name="trash-outline" size={20} color={Colors.error || "#FF4444"} />
+          <Ionicons name="trash-outline" size={20} color={colors.red} />
         </TouchableOpacity>
       </View>
     </View>
   )
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.white }]}>
       {isLoading ? (
         <View style={styles.center}>
-          <ActivityIndicator size="large" color={Colors.primary} />
+          <ActivityIndicator size="large" color={colors.primary} />
         </View>
       ) : (
         <FlatList
@@ -79,9 +81,9 @@ export default function MyHotelsScreen() {
           refreshing={isLoading}
           ListEmptyComponent={
             <View style={styles.center}>
-              <Ionicons name="business-outline" size={48} color={Colors.lightGray} />
-              <Text style={styles.emptyText}>No hotels yet</Text>
-              <Text style={styles.emptySubText}>Tap + to add your first hotel</Text>
+              <Ionicons name="business-outline" size={48} color={colors.lightGray} />
+              <Text style={[styles.emptyText, { color: colors.darkGray }]}>No hotels yet</Text>
+              <Text style={[styles.emptySubText, { color: colors.darkGray }]}>Tap + to add your first hotel</Text>
             </View>
           }
         />

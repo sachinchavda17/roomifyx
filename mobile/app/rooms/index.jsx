@@ -5,14 +5,16 @@ import { useMutation } from "../../hooks/use-mutation"
 import { getRoomsByHotel, deleteRoom } from "../../services/rooms"
 import { Ionicons } from "@expo/vector-icons"
 import { Colors, Spacing, Typography } from "../../constants/Theme"
+import { useThemeColors } from "../../components/organisms/theme-switch"
 
 export default function ManageRoomsScreen() {
   const { hotel_id } = useLocalSearchParams()
   const router = useRouter()
+  const colors = useThemeColors()
 
   const AddButton = () => (
     <TouchableOpacity style={{ padding: 4 }} onPress={() => router.push({ pathname: "/rooms/add-room", params: { hotel_id } })}>
-      <Ionicons name="add" size={28} color={Colors.primary} />
+      <Ionicons name="add" size={28} color={colors.primary} />
     </TouchableOpacity>
   )
 
@@ -40,32 +42,32 @@ export default function ManageRoomsScreen() {
   }
 
   const renderItem = ({ item }) => (
-    <View style={styles.card}>
+    <View style={[styles.card, { backgroundColor: colors.white, borderColor: colors.lightGray }]}>
       <View style={styles.cardContent}>
-        <Text style={styles.cardTitle}>{item.title}</Text>
-        <Text style={styles.cardSubtitle}>
+        <Text style={[styles.cardTitle, { color: colors.black }]}>{item.title}</Text>
+        <Text style={[styles.cardSubtitle, { color: colors.darkGray }]}>
           #{item.room_number} · {item.room_type} · ₹{item.price}/night
         </Text>
       </View>
       <View style={styles.actions}>
         <Link href={{ pathname: `/rooms/${item.id}`, params: { room_id: item.id, hotel_id } }} asChild>
           <TouchableOpacity style={styles.actionButton}>
-            <Ionicons name="create-outline" size={20} color={Colors.primary} />
+            <Ionicons name="create-outline" size={20} color={colors.primary} />
           </TouchableOpacity>
         </Link>
         <TouchableOpacity style={styles.actionButton} onPress={() => handleDelete(item.id)}>
-          <Ionicons name="trash-outline" size={20} color={Colors.error || "#FF4444"} />
+          <Ionicons name="trash-outline" size={20} color={colors.red} />
         </TouchableOpacity>
       </View>
     </View>
   )
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.white }]}>
       <Stack.Screen options={{ title: "Manage Rooms", headerRight: () => <AddButton /> }} />
       {isLoading ? (
         <View style={styles.center}>
-          <ActivityIndicator size="large" color={Colors.primary} />
+          <ActivityIndicator size="large" color={colors.primary} />
         </View>
       ) : (
         <FlatList
@@ -77,9 +79,9 @@ export default function ManageRoomsScreen() {
           refreshing={isLoading}
           ListEmptyComponent={
             <View style={styles.center}>
-              <Ionicons name="bed-outline" size={48} color={Colors.lightGray} />
-              <Text style={styles.emptyText}>No rooms yet.</Text>
-              <Text style={styles.emptySubText}>Add rooms to this hotel to get started.</Text>
+              <Ionicons name="bed-outline" size={48} color={colors.lightGray} />
+              <Text style={[styles.emptyText, { color: colors.darkGray }]}>No rooms yet.</Text>
+              <Text style={[styles.emptySubText, { color: colors.darkGray }]}>Add rooms to this hotel to get started.</Text>
             </View>
           }
         />

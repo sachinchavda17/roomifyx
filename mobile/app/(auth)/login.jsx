@@ -3,6 +3,7 @@ import { useState } from "react"
 import { useRouter, Link } from "expo-router"
 import { Ionicons } from "@expo/vector-icons"
 import { Colors, Spacing, Typography } from "../../constants/Theme"
+import { useThemeColors } from "../../components/organisms/theme-switch"
 
 import { useMutation } from "../../hooks/use-mutation"
 import { login } from "../../services/auth"
@@ -13,6 +14,7 @@ import { CircularLoader } from "../../components/molecules/circular-loader"
 import AnimatedHeaderScrollview from "../../components/organisms/animated-header-scrollview"
 
 export default function LoginScreen() {
+  const colors = useThemeColors()
   const { login: handleAuthLogin } = useAuth()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
@@ -35,14 +37,10 @@ export default function LoginScreen() {
   })
 
   return (
-    <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={styles.container}>
+    <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={[styles.container, { backgroundColor: colors.white }]}>
       <AnimatedHeaderScrollview
         largeTitle="Log in"
         subtitle="Welcome back! You've been missed."
-        headerBlurConfig={{
-          intensity: 20,
-          tint: "light",
-        }}
       >
         <View style={styles.form}>
           <InputText
@@ -57,9 +55,9 @@ export default function LoginScreen() {
           <InputText label="Password" placeholder="Enter your password" value={password} onChangeText={setPassword} secureTextEntry />
 
           <TouchableOpacity style={styles.forgotPassword}>
-            <Text style={styles.forgotPasswordText}>Forgot password?</Text>
+            <Text style={[styles.forgotPasswordText, { color: colors.black }]}>Forgot password?</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={[styles.loginButton, isLoading && { opacity: 0.8 }]} onPress={handleLogin} disabled={isLoading}>
+          <TouchableOpacity style={[styles.loginButton, { backgroundColor: colors.primary, shadowColor: colors.primary }, isLoading && { opacity: 0.8 }]} onPress={handleLogin} disabled={isLoading}>
             {isLoading ? (
               <CircularLoader size={20} strokeWidth={2.5} activeColor={Colors.white} />
             ) : (
@@ -69,22 +67,22 @@ export default function LoginScreen() {
         </View>
 
         <View style={styles.dividerContainer}>
-          <View style={styles.divider} />
-          <Text style={styles.dividerText}>or</Text>
-          <View style={styles.divider} />
+          <View style={[styles.divider, { backgroundColor: colors.lightGray }]} />
+          <Text style={[styles.dividerText, { color: colors.darkGray }]}>or</Text>
+          <View style={[styles.divider, { backgroundColor: colors.lightGray }]} />
         </View>
 
         <View style={styles.socialContainer}>
-          <SocialButton icon="logo-google" title="Continue with Google" />
-          <SocialButton icon="logo-facebook" title="Continue with Facebook" />
-          <SocialButton icon="logo-apple" title="Continue with Apple" />
+          <SocialButton icon="logo-google" title="Continue with Google" colors={colors} />
+          <SocialButton icon="logo-facebook" title="Continue with Facebook" colors={colors} />
+          <SocialButton icon="logo-apple" title="Continue with Apple" colors={colors} />
         </View>
 
         <View style={styles.footer}>
-          <Text style={styles.footerText}>Don't have an account? </Text>
+          <Text style={[styles.footerText, { color: colors.darkGray }]}>Don't have an account? </Text>
           <Link href="/(auth)/signup" asChild>
             <TouchableOpacity>
-              <Text style={styles.signupLink}>Sign up</Text>
+              <Text style={[styles.signupLink, { color: colors.black }]}>Sign up</Text>
             </TouchableOpacity>
           </Link>
         </View>
@@ -93,11 +91,11 @@ export default function LoginScreen() {
   )
 }
 
-function SocialButton({ icon, title }) {
+function SocialButton({ icon, title, colors }) {
   return (
-    <TouchableOpacity style={styles.socialButton}>
-      <Ionicons name={icon} size={20} color={Colors.black} style={styles.socialIcon} />
-      <Text style={styles.socialButtonText}>{title}</Text>
+    <TouchableOpacity style={[styles.socialButton, { borderColor: colors.black }]}>
+      <Ionicons name={icon} size={20} color={colors.black} style={styles.socialIcon} />
+      <Text style={[styles.socialButtonText, { color: colors.black }]}>{title}</Text>
     </TouchableOpacity>
   )
 }

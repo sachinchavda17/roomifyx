@@ -5,12 +5,14 @@ import { useQuery } from "../../hooks/use-query"
 import { useMutation } from "../../hooks/use-mutation"
 import { getRoomById, updateRoom } from "../../services/rooms"
 import { Colors } from "../../constants/Theme"
+import { useThemeColors } from "../../components/organisms/theme-switch"
 import RoomForm from "../../components/organisms/RoomForm"
 
 export default function EditRoomScreen() {
   const router = useRouter()
   const { room_id, hotel_id } = useLocalSearchParams()
   const queryClient = useQueryClient()
+  const colors = useThemeColors()
 
   const { data: room, isLoading , refetch} = useQuery({
     queryKey: ["room", room_id],
@@ -35,7 +37,7 @@ export default function EditRoomScreen() {
   if (isLoading || !room) {
     return (
       <View style={styles.center}>
-        <ActivityIndicator size="large" color={Colors.primary} />
+        <ActivityIndicator size="large" color={colors.primary} />
       </View>
     )
   }

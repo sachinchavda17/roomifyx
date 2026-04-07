@@ -2,6 +2,7 @@ import { View, Text, TouchableOpacity, Modal, FlatList, StyleSheet, Pressable } 
 import { Ionicons } from "@expo/vector-icons"
 import { useState } from "react"
 import { Colors, Spacing, Typography } from "../constants/Theme"
+import { useThemeColors } from "./organisms/theme-switch"
 
 export default function BottomSheetSelect({
   label,
@@ -15,6 +16,7 @@ export default function BottomSheetSelect({
   error,
   disabled,
 }) {
+  const colors = useThemeColors()
   const [visible, setVisible] = useState(false)
 
   const selectedOption = options.find((o) => o.value === value)
@@ -35,9 +37,9 @@ export default function BottomSheetSelect({
       )}
 
       {/* Trigger */}
-      <TouchableOpacity style={[styles.trigger, error && styles.triggerError, disabled && styles.disabled]} onPress={() => !disabled && setVisible(true)} activeOpacity={0.7}>
-        <Text style={[styles.triggerText, !selectedOption && styles.placeholder]}>{selectedOption ? selectedOption.label : placeholder}</Text>
-        <Ionicons name="chevron-down" size={18} color={Colors.darkGray} />
+      <TouchableOpacity style={[styles.trigger, { borderColor: colors.lightGray, backgroundColor: colors.inputBackground }, error && styles.triggerError, disabled && styles.disabled]} onPress={() => !disabled && setVisible(true)} activeOpacity={0.7}>
+        <Text style={[styles.triggerText, { color: colors.black }, !selectedOption && { color: colors.darkGray }]}>{selectedOption ? selectedOption.label : placeholder}</Text>
+        <Ionicons name="chevron-down" size={18} color={colors.darkGray} />
       </TouchableOpacity>
 
       {/* Error */}
@@ -49,15 +51,15 @@ export default function BottomSheetSelect({
         <Pressable style={styles.backdrop} onPress={() => setVisible(false)} />
 
         {/* Sheet */}
-        <View style={styles.sheet}>
+        <View style={[styles.sheet, { backgroundColor: colors.white }]}>
           {/* Handle */}
-          <View style={styles.handle} />
+          <View style={[styles.handle, { backgroundColor: colors.lightGray }]} />
 
           {/* Header */}
           <View style={styles.sheetHeader}>
-            <Text style={styles.sheetTitle}>{title}</Text>
+            <Text style={[styles.sheetTitle, { color: colors.black }]}>{title}</Text>
             <TouchableOpacity onPress={() => setVisible(false)}>
-              <Ionicons name="close" size={22} color={Colors.black} />
+              <Ionicons name="close" size={22} color={colors.black} />
             </TouchableOpacity>
           </View>
 

@@ -4,6 +4,7 @@ import { useLocalSearchParams, useRouter, Stack, Link } from "expo-router"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
 import { useState, useMemo } from "react"
 import { Colors, Spacing, Typography } from "../../constants/Theme"
+import { useThemeColors } from "../../components/organisms/theme-switch"
 import { useAuth } from "../../context/AuthContext"
 import { useQuery } from "../../hooks/use-query"
 import { useMutation } from "../../hooks/use-mutation"
@@ -43,6 +44,7 @@ const getDefaultCheckOut = () => {
 
 // Simple date picker modal component
 function DatePickerModal({ visible, onClose, onSelect, selectedDate, minDate, title }) {
+    const colors = useThemeColors()
     const [year, setYear] = useState(selectedDate.getFullYear())
     const [month, setMonth] = useState(selectedDate.getMonth())
 
@@ -84,29 +86,29 @@ function DatePickerModal({ visible, onClose, onSelect, selectedDate, minDate, ti
     return (
         <Modal visible={visible} transparent animationType="fade">
             <View style={dateStyles.overlay}>
-                <View style={dateStyles.container}>
+                <View style={[dateStyles.container, { backgroundColor: colors.white }]}>
                     <View style={dateStyles.header}>
-                        <Text style={dateStyles.title}>{title}</Text>
+                        <Text style={[dateStyles.title, { color: colors.black }]}>{title}</Text>
                         <TouchableOpacity onPress={onClose}>
-                            <Ionicons name="close" size={24} color={Colors.black} />
+                            <Ionicons name="close" size={24} color={colors.black} />
                         </TouchableOpacity>
                     </View>
 
                     <View style={dateStyles.monthNav}>
                         <TouchableOpacity onPress={handlePrevMonth} style={dateStyles.navButton}>
-                            <Ionicons name="chevron-back" size={22} color={Colors.black} />
+                            <Ionicons name="chevron-back" size={22} color={colors.black} />
                         </TouchableOpacity>
-                        <Text style={dateStyles.monthLabel}>
+                        <Text style={[dateStyles.monthLabel, { color: colors.black }]}>
                             {months[month]} {year}
                         </Text>
                         <TouchableOpacity onPress={handleNextMonth} style={dateStyles.navButton}>
-                            <Ionicons name="chevron-forward" size={22} color={Colors.black} />
+                            <Ionicons name="chevron-forward" size={22} color={colors.black} />
                         </TouchableOpacity>
                     </View>
 
                     <View style={dateStyles.weekRow}>
                         {["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"].map((d) => (
-                            <Text key={d} style={dateStyles.weekDay}>
+                            <Text key={d} style={[dateStyles.weekDay, { color: colors.darkGray }]}>
                                 {d}
                             </Text>
                         ))}
@@ -133,7 +135,7 @@ function DatePickerModal({ visible, onClose, onSelect, selectedDate, minDate, ti
                                     disabled={disabled}
                                     activeOpacity={0.7}
                                 >
-                                    <Text style={[dateStyles.dayText, disabled && dateStyles.disabledDay, selected && dateStyles.selectedDayText]}>
+                                    <Text style={[dateStyles.dayText, { color: colors.black }, disabled && { color: colors.lightGray }, selected && dateStyles.selectedDayText]}>
                                         {day}
                                     </Text>
                                 </TouchableOpacity>
@@ -147,6 +149,7 @@ function DatePickerModal({ visible, onClose, onSelect, selectedDate, minDate, ti
 }
 
 export default function ReserveScreen() {
+    const colors = useThemeColors()
     const { id, name, price, rating, address, image } = useLocalSearchParams()
     const router = useRouter()
     const insets = useSafeAreaInsets()
@@ -226,67 +229,67 @@ export default function ReserveScreen() {
     }
 
     return (
-        <View style={[styles.container, { paddingTop: insets.top }]}>
+        <View style={[styles.container, { paddingTop: insets.top, backgroundColor: colors.white }]}>
             <Stack.Screen options={{ headerShown: false }} />
 
             {/* Header */}
-            <View style={styles.header}>
+            <View style={[styles.header, { borderBottomColor: colors.border }]}>
                 <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-                    <Ionicons name="chevron-back" size={24} color={Colors.black} />
+                    <Ionicons name="chevron-back" size={24} color={colors.black} />
                 </TouchableOpacity>
-                <Text style={styles.headerTitle}>Confirm reservation</Text>
+                <Text style={[styles.headerTitle, { color: colors.black }]}>Confirm reservation</Text>
                 <View style={{ width: 40 }} />
             </View>
 
             <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
                 {/* Hotel summary card */}
-                <View style={styles.hotelCard}>
+                <View style={[styles.hotelCard, { backgroundColor: colors.gray[100] }]}>
                     <View style={styles.hotelCardInfo}>
-                        <Text style={styles.hotelName} numberOfLines={2}>
+                        <Text style={[styles.hotelName, { color: colors.black }]} numberOfLines={2}>
                             {name}
                         </Text>
                         <View style={styles.hotelMeta}>
-                            <Ionicons name="star" size={14} color={Colors.star} />
-                            <Text style={styles.hotelRating}>{rating}</Text>
-                            <Text style={styles.hotelLocation}> · {address}</Text>
+                            <Ionicons name="star" size={14} color={colors.star} />
+                            <Text style={[styles.hotelRating, { color: colors.black }]}>{rating}</Text>
+                            <Text style={[styles.hotelLocation, { color: colors.darkGray }]}> · {address}</Text>
                         </View>
-                        <Text style={styles.hotelPrice}>₹{price} / night</Text>
+                        <Text style={[styles.hotelPrice, { color: colors.primary }]}>₹{price} / night</Text>
                     </View>
                 </View>
 
                 {/* Date selection */}
                 <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>Your trip</Text>
+                    <Text style={[styles.sectionTitle, { color: colors.black }]}>Your trip</Text>
 
-                    <TouchableOpacity style={styles.dateRow} onPress={() => setShowCheckInPicker(true)} activeOpacity={0.7}>
+                    <TouchableOpacity style={[styles.dateRow, { backgroundColor: colors.gray[100] }]} onPress={() => setShowCheckInPicker(true)} activeOpacity={0.7}>
                         <View style={styles.dateInfo}>
-                            <Text style={styles.dateLabel}>Check-in</Text>
-                            <Text style={styles.dateValue}>{formatDate(checkIn)}</Text>
+                            <Text style={[styles.dateLabel, { color: colors.darkGray }]}>Check-in</Text>
+                            <Text style={[styles.dateValue, { color: colors.black }]}>{formatDate(checkIn)}</Text>
                         </View>
-                        <Ionicons name="calendar-outline" size={22} color={Colors.primary} />
+                        <Ionicons name="calendar-outline" size={22} color={colors.primary} />
                     </TouchableOpacity>
 
-                    <TouchableOpacity style={styles.dateRow} onPress={() => setShowCheckOutPicker(true)} activeOpacity={0.7}>
+                    <TouchableOpacity style={[styles.dateRow, { backgroundColor: colors.gray[100] }]} onPress={() => setShowCheckOutPicker(true)} activeOpacity={0.7}>
                         <View style={styles.dateInfo}>
-                            <Text style={styles.dateLabel}>Check-out</Text>
-                            <Text style={styles.dateValue}>{formatDate(checkOut)}</Text>
+                            <Text style={[styles.dateLabel, { color: colors.darkGray }]}>Check-out</Text>
+                            <Text style={[styles.dateValue, { color: colors.black }]}>{formatDate(checkOut)}</Text>
                         </View>
-                        <Ionicons name="calendar-outline" size={22} color={Colors.primary} />
+                        <Ionicons name="calendar-outline" size={22} color={colors.primary} />
                     </TouchableOpacity>
 
                     <View style={styles.nightsInfo}>
-                        <Ionicons name="moon-outline" size={16} color={Colors.darkGray} />
-                        <Text style={styles.nightsText}>
+                        <Ionicons name="moon-outline" size={16} color={colors.darkGray} />
+                        <Text style={[styles.nightsText, { color: colors.darkGray }]}>
                             {nights} {nights === 1 ? "night" : "nights"}
                         </Text>
                     </View>
                 </View>
 
-                <View style={styles.divider} />
+                <View style={[styles.divider, { backgroundColor: colors.border }]} />
 
                 {/* Room selection */}
                 <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>Select a room</Text>
+                    <Text style={[styles.sectionTitle, { color: colors.black }]}>Select a room</Text>
                     {roomsLoading ? (
                         <View style={styles.roomsLoading}>
                             <CircularLoader />
@@ -299,19 +302,19 @@ export default function ReserveScreen() {
                                 return (
                                     <TouchableOpacity
                                         key={room.id}
-                                        style={[styles.roomCard, isSelected && styles.roomCardSelected, !isAvailable && styles.roomCardDisabled]}
+                                        style={[styles.roomCard, { backgroundColor: colors.gray[100] }, isSelected && [styles.roomCardSelected, { borderColor: colors.primary }], !isAvailable && styles.roomCardDisabled]}
                                         onPress={() => isAvailable && setSelectedRoomId(room.id)}
                                         activeOpacity={isAvailable ? 0.7 : 1}
                                         disabled={!isAvailable}
                                     >
                                         <View style={styles.roomCardHeader}>
-                                            <Text style={[styles.roomType, isSelected && styles.roomTypeSelected]}>
+                                            <Text style={[styles.roomType, { color: colors.darkGray }, isSelected && { color: colors.primary }]}>
                                                 {room.room_type || room.type || "Standard"}
                                             </Text>
-                                            {isSelected && <Ionicons name="checkmark-circle" size={20} color={Colors.primary} />}
+                                            {isSelected && <Ionicons name="checkmark-circle" size={20} color={colors.primary} />}
                                         </View>
-                                        <Text style={[styles.roomNumber, isSelected && styles.roomNumberSelected]}>Room {room.room_number}</Text>
-                                        <Text style={[styles.roomPrice, isSelected && styles.roomPriceSelected]}>₹{room.price}/night</Text>
+                                        <Text style={[styles.roomNumber, { color: colors.black }, isSelected && { color: colors.black }]}>Room {room.room_number}</Text>
+                                        <Text style={[styles.roomPrice, { color: colors.black }, isSelected && { color: colors.primary }]}>₹{room.price}/night</Text>
                                         <View style={[styles.roomStatus, isAvailable ? styles.statusAvailable : styles.statusOccupied]}>
                                             <Text style={[styles.roomStatusText, isAvailable ? styles.statusTextAvailable : styles.statusTextOccupied]}>
                                                 {isAvailable ? "Available" : "Occupied"}
@@ -323,19 +326,19 @@ export default function ReserveScreen() {
                         </ScrollView>
                     ) : (
                         <View style={styles.noRooms}>
-                            <Ionicons name="bed-outline" size={40} color={Colors.lightGray} />
-                            <Text style={styles.noRoomsText}>No rooms available for this hotel</Text>
+                            <Ionicons name="bed-outline" size={40} color={colors.lightGray} />
+                            <Text style={[styles.noRoomsText, { color: colors.darkGray }]}>No rooms available for this hotel</Text>
                         </View>
                     )}
                 </View>
 
-                <View style={styles.divider} />
+                <View style={[styles.divider, { backgroundColor: colors.border }]} />
 
                 {/* Guest info */}
                 {isAuthenticated ? (
                     <>
                         <View style={styles.section}>
-                            <Text style={styles.sectionTitle}>Guest information</Text>
+                            <Text style={[styles.sectionTitle, { color: colors.black }]}>Guest information</Text>
                             <InputText
                                 label="Full Name"
                                 value={customerName}
@@ -355,34 +358,34 @@ export default function ReserveScreen() {
                             />
                         </View>
 
-                        <View style={styles.divider} />
+                        <View style={[styles.divider, { backgroundColor: colors.border }]} />
 
                         {/* Price breakdown */}
                         <View style={styles.section}>
-                            <Text style={styles.sectionTitle}>Price details</Text>
+                            <Text style={[styles.sectionTitle, { color: colors.black }]}>Price details</Text>
                             <View style={styles.priceRow}>
-                                <Text style={styles.priceLabel}>
+                                <Text style={[styles.priceLabel, { color: colors.gray[700] }]}>
                                     ₹{roomPrice} × {nights} {nights === 1 ? "night" : "nights"}
                                 </Text>
-                                <Text style={styles.priceValue}>₹{totalAmount}</Text>
+                                <Text style={[styles.priceValue, { color: colors.gray[700] }]}>₹{totalAmount}</Text>
                             </View>
                             <View style={styles.priceRow}>
-                                <Text style={styles.priceLabel}>Service fee</Text>
-                                <Text style={styles.priceValue}>₹0</Text>
+                                <Text style={[styles.priceLabel, { color: colors.gray[700] }]}>Service fee</Text>
+                                <Text style={[styles.priceValue, { color: colors.gray[700] }]}>₹0</Text>
                             </View>
-                            <View style={[styles.priceRow, styles.totalRow]}>
-                                <Text style={styles.totalLabel}>Total</Text>
-                                <Text style={styles.totalValue}>₹{totalAmount}</Text>
+                            <View style={[styles.priceRow, styles.totalRow, { borderTopColor: colors.border }]}>
+                                <Text style={[styles.totalLabel, { color: colors.black }]}>Total</Text>
+                                <Text style={[styles.totalValue, { color: colors.black }]}>₹{totalAmount}</Text>
                             </View>
                         </View>
                     </>
                 ) : (
                     <View style={styles.loginPrompt}>
-                        <Ionicons name="lock-closed-outline" size={48} color={Colors.lightGray} />
-                        <Text style={styles.loginTitle}>Log in to reserve</Text>
-                        <Text style={styles.loginSubtitle}>You need to be logged in to make a reservation.</Text>
+                        <Ionicons name="lock-closed-outline" size={48} color={colors.lightGray} />
+                        <Text style={[styles.loginTitle, { color: colors.black }]}>Log in to reserve</Text>
+                        <Text style={[styles.loginSubtitle, { color: colors.darkGray }]}>You need to be logged in to make a reservation.</Text>
                         <Link href="/(auth)/login" asChild>
-                            <TouchableOpacity style={styles.loginButton}>
+                            <TouchableOpacity style={[styles.loginButton, { backgroundColor: colors.primary }]}>
                                 <Text style={styles.loginButtonText}>Log in</Text>
                             </TouchableOpacity>
                         </Link>
@@ -395,13 +398,13 @@ export default function ReserveScreen() {
 
             {/* Bottom bar */}
             {isAuthenticated && (
-                <View style={[styles.bottomBar, { paddingBottom: insets.bottom || 16 }]}>
+                <View style={[styles.bottomBar, { paddingBottom: insets.bottom || 16, backgroundColor: colors.white, borderTopColor: colors.border }]}>
                     <View style={styles.bottomPriceContainer}>
-                        <Text style={styles.bottomPrice}>₹{totalAmount}</Text>
-                        <Text style={styles.bottomPriceLabel}> total</Text>
+                        <Text style={[styles.bottomPrice, { color: colors.black }]}>₹{totalAmount}</Text>
+                        <Text style={[styles.bottomPriceLabel, { color: colors.darkGray }]}> total</Text>
                     </View>
                     <TouchableOpacity
-                        style={[styles.confirmButton, bookingMutation.isLoading && styles.confirmButtonDisabled]}
+                        style={[styles.confirmButton, { backgroundColor: colors.primary }, bookingMutation.isLoading && styles.confirmButtonDisabled]}
                         onPress={handleReserve}
                         disabled={bookingMutation.isLoading}
                         activeOpacity={0.85}

@@ -12,11 +12,13 @@ import { AnimatedHeaderScrollView } from "../../components/organisms/animated-he
 import { Avatar } from "../../components/base/avatar"
 import { useRef, useMemo } from "react"
 import EditProfile from "../../components/EditProfile"
+import { ThemeSwitch, useThemeColors } from "../../components/organisms/theme-switch"
 
 export default function ProfileScreen() {
   const { isAuthenticated, logout } = useAuth()
   const router = useRouter()
   const editProfileRef = useRef(null)
+  const colors = useThemeColors()
 
   const { isLoading, data } = useQuery({
     queryKey: ["profile"],
@@ -76,31 +78,27 @@ export default function ProfileScreen() {
     <>
       <AnimatedHeaderScrollView
         largeTitle="Profile"
-        headerBlurConfig={{
-          intensity: 20,
-          tint: "light",
-        }}
       >
         <View style={styles.content}>
-          <View style={styles.profileHeader}>
-            <Avatar image={{ name: displayName }} size={70} showBorder={true} borderColor={Colors.border} borderWidth={1} />
+          <View style={[styles.profileHeader, { backgroundColor: colors.white, borderColor: colors.border }]}>
+            <Avatar image={{ name: displayName }} size={70} showBorder={true} borderColor={colors.border} borderWidth={1} />
             <View style={styles.profileInfo}>
-              <Text style={styles.userName}>{displayName}</Text>
-              <Text style={styles.userEmail}>{email}</Text>
+              <Text style={[styles.userName, { color: colors.black }]}>{displayName}</Text>
+              <Text style={[styles.userEmail, { color: colors.darkGray }]}>{email}</Text>
             </View>
             {isAuthenticated && (
-              <TouchableOpacity style={styles.editButton} onPress={openEditProfile}>
-                <Ionicons name="pencil-outline" size={15} color={Colors.black} />
+              <TouchableOpacity style={[styles.editButton, { backgroundColor: colors.lightGray, borderColor: colors.border }]} onPress={openEditProfile}>
+                <Ionicons name="pencil-outline" size={15} color={colors.black} />
               </TouchableOpacity>
             )}
           </View>
           {!isAuthenticated && (
-            <View style={styles.loginCard}>
+            <View style={[styles.loginCard, { backgroundColor: colors.white, borderColor: colors.border }]}>
               <View style={styles.loginCardContent}>
-                <Text style={styles.loginCardTitle}>Log in for the best experience</Text>
-                <Text style={styles.loginCardSubtitle}>Access your bookings, saved places, and more from any device.</Text>
+                <Text style={[styles.loginCardTitle, { color: colors.black }]}>Log in for the best experience</Text>
+                <Text style={[styles.loginCardSubtitle, { color: colors.darkGray }]}>Access your bookings, saved places, and more from any device.</Text>
                 <Link href="/(auth)/login" asChild>
-                  <TouchableOpacity style={styles.loginCardButton}>
+                  <TouchableOpacity style={[styles.loginCardButton, { backgroundColor: colors.primary }]}>
                     <Text style={styles.loginCardButtonText}>Log in</Text>
                   </TouchableOpacity>
                 </Link>
@@ -109,35 +107,40 @@ export default function ProfileScreen() {
           )}
 
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Account Settings</Text>
-            {/* <MenuLink icon="person-outline" title="Personal info" /> */}
-            <MenuLink icon="shield-checkmark-outline" title="Login & security" />
-            <MenuLink icon="card-outline" title="Payments & payouts" />
+            <Text style={[styles.sectionTitle, { color: colors.black }]}>Account Settings</Text>
+            {/* <MenuLink icon="person-outline" title="Personal info" colors={colors} /> */}
+            <MenuLink icon="shield-checkmark-outline" title="Login & security" colors={colors} />
+            <MenuLink icon="card-outline" title="Payments & payouts" colors={colors} />
           </View>
 
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Hosting</Text>
-            <MenuLink icon="business-outline" title="Manage Hotels" href="/hotels" />
-            <MenuLink icon="add-circle-outline" title="List your space" />
+            <Text style={[styles.sectionTitle, { color: colors.black }]}>Hosting</Text>
+            <MenuLink icon="business-outline" title="Manage Hotels" href="/hotels" colors={colors} />
+            <MenuLink icon="add-circle-outline" title="List your space" colors={colors} />
           </View>
 
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Legal</Text>
-            {/* <MenuLink icon="document-text-outline" title="Terms of Service" /> */}
-            {/* <MenuLink icon="shield-outline" title="Privacy Policy" /> */}
-            <MenuLink icon="settings-outline" title="Settings" />
+            <Text style={[styles.sectionTitle, { color: colors.black }]}>Preferences</Text>
+            <View style={[styles.menuItem, { borderBottomColor: colors.border }]}>
+              <View style={styles.menuIconContainer}>
+                <Ionicons name="moon-outline" size={22} color={colors.black} />
+              </View>
+              <Text style={[styles.menuText, { flex: 1, color: colors.black }]}>Dark Mode</Text>
+              <ThemeSwitch />
+            </View>
+            <MenuLink icon="settings-outline" title="Settings" colors={colors} />
           </View>
 
           {isAuthenticated && (
             <>
               <View style={styles.section}>
-                <Text style={[styles.sectionTitle, { color: Colors.primary }]}>Danger Zone</Text>
+                <Text style={[styles.sectionTitle, { color: colors.primary }]}>Danger Zone</Text>
                 <TouchableOpacity onPress={handleDeleteAccount} disabled={deleteMutation.isLoading}>
-                  <View style={styles.menuItem}>
+                  <View style={[styles.menuItem, { borderBottomColor: colors.border }]}>
                     <View style={styles.menuIconContainer}>
-                      <Ionicons name="trash-outline" size={22} color={Colors.primary} />
+                      <Ionicons name="trash-outline" size={22} color={colors.primary} />
                     </View>
-                    <Text style={[styles.menuText, { color: Colors.primary }]}>Delete Account</Text>
+                    <Text style={[styles.menuText, { color: colors.primary }]}>Delete Account</Text>
                   </View>
                 </TouchableOpacity>
               </View>
@@ -155,14 +158,14 @@ export default function ProfileScreen() {
   )
 }
 
-function MenuLink({ icon, title, href }) {
+function MenuLink({ icon, title, href, colors }) {
   const content = (
-    <View style={styles.menuItem}>
+    <View style={[styles.menuItem, { borderBottomColor: colors.border }]}>
       <View style={styles.menuIconContainer}>
-        <Ionicons name={icon} size={22} color={Colors.black} />
+        <Ionicons name={icon} size={22} color={colors.black} />
       </View>
-      <Text style={styles.menuText}>{title}</Text>
-      <Ionicons name="chevron-forward" size={18} color={Colors.darkGray} />
+      <Text style={[styles.menuText, { color: colors.black }]}>{title}</Text>
+      <Ionicons name="chevron-forward" size={18} color={colors.darkGray} />
     </View>
   )
 

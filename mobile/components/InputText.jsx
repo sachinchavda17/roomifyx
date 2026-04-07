@@ -3,6 +3,7 @@ import { Colors, Spacing, Typography } from "../constants/Theme"
 import { Ionicons } from "@expo/vector-icons"
 import AnimatedInputBar from "./base/animated-input-bar"
 import { Controller } from "react-hook-form"
+import { useThemeColors } from "./organisms/theme-switch"
 
 const InputText = ({
   label,
@@ -19,6 +20,7 @@ const InputText = ({
   inputWrapperStyle,
   ...props
 }) => {
+  const colors = useThemeColors()
   const placeholders = [placeholder || "Type here..."]
 
   // Auto-apply required rule when isRequired=true and no custom rules given
@@ -30,11 +32,11 @@ const InputText = ({
       value={fieldValue ?? ""}
       onChangeText={fieldOnChange}
       animationInterval={3000}
-      selectionColor={Colors.primary}
+      selectionColor={colors.primary}
       containerStyle={styles.animatedContainer}
       inputWrapperStyle={[styles.animatedInputWrapper, inputWrapperStyle]}
-      inputStyle={styles.input}
-      placeholderStyle={styles.placeholder}
+      inputStyle={[styles.input, { color: colors.black }]}
+      placeholderStyle={[styles.placeholder, { color: colors.darkGray }]}
       {...props}
     />
   )
@@ -42,13 +44,13 @@ const InputText = ({
   return (
     <View style={[styles.container, style]}>
       {label && (
-        <Text style={styles.label}>
+        <Text style={[styles.label, { color: colors.black }]}>
           {label}
-          {isRequired && <Text style={styles.required}> *</Text>}
+          {isRequired && <Text style={[styles.required, { color: colors.red }]}> *</Text>}
         </Text>
       )}
-      <View style={[styles.inputWrapper, error && styles.inputError]}>
-        {icon && <Ionicons name={icon} size={18} color={Colors.darkGray} style={styles.icon} />}
+      <View style={[styles.inputWrapper, { backgroundColor: colors.inputBackground, borderColor: colors.lightGray }, error && styles.inputError]}>
+        {icon && <Ionicons name={icon} size={18} color={colors.darkGray} style={styles.icon} />}
 
         {control && name ? (
           // Mode 1: react-hook-form controlled
