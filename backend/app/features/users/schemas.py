@@ -15,4 +15,3 @@ class UserPublic(BaseModel):
 class UserUpdate(BaseModel):
     first_name: str | None = None
     last_name: str | None = None
-    role: UserRole | None = None

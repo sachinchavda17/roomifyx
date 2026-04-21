@@ -5,30 +5,43 @@ from app.features.users.model import user_collection
 from app.core.security import hash_password, verify_password, create_access_token
 
 
-def register_user(user):
+async def register_user(user):
     try:
-        if user_collection.find_one({"email": user.email}):
+        existing_user = await user_collection.find_one(
+            {"email": user.email.lower(), "is_active": {"$ne": False}}
+        )
+
+        if existing_user:
             raise HTTPException(
-                status_code=status.HTTP_409_CONFLICT, detail="Email already registered"
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Email already registered",
             )
 
-        user = user_collection.insert_one(
-            {
-                "first_name": user.first_name,
-                "last_name": user.last_name,
-                "email": user.email,
-                "password": hash_password(user.password),
-                "role": "user",
-            }
+        role = user.role if user.role in ("user", "owner") else "user"
+
+        new_user = {
+            "first_name": user.first_name,
+            "last_name": user.last_name,
+            "email": user.email.lower(),
+            "password": hash_password(user.password),
+            "role": role,
+            "is_active": True,
+        }
+
+        result = await user_collection.insert_one(new_user)
+
+        token = create_access_token(
+            {"user_id": str(result.inserted_id), "role": role}
         )
-        token = create_access_token({"user_id": str(user.inserted_id), "role": "user"})
 
         return {
             "message": "User registered successfully",
             "token": token,
-            "role": "user",
+            "role": role,
         }
 
+    except HTTPException:
+        raise
     except PyMongoError:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -36,9 +49,11 @@ def register_user(user):
         )
 
 
-def login_user(data):
+async def login_user(data):
     try:
-        user = user_collection.find_one({"email": data.email})
+        user = await user_collection.find_one(
+            {"email": data.email.lower(), "is_active": {"$ne": False}}
+        )
 
         if not user or not verify_password(data.password, user["password"]):
             raise HTTPException(
@@ -54,6 +69,8 @@ def login_user(data):
             "role": user["role"],
         }
 
+    except HTTPException:
+        raise
     except PyMongoError:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,

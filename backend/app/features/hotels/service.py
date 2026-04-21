@@ -1,5 +1,5 @@
 from bson import ObjectId
-from fastapi import HTTPException, status
+from fastapi import HTTPException
 
 from app.features.hotels.model import hotel_collection
 from app.features.rooms.model import room_collection
@@ -28,7 +28,7 @@ def _serialize_hotel(hotel):
     return data
 
 
-def create_hotel(data, owner_id: str):
+async def create_hotel(data, owner_id: str):
     hotel = {
         "name": data.name,
         "hotel_type": data.hotel_type,
@@ -48,20 +48,20 @@ def create_hotel(data, owner_id: str):
         "max_guests": data.max_guests,
     }
 
-    result = hotel_collection.insert_one(hotel)
+    result = await hotel_collection.insert_one(hotel)
     hotel["_id"] = result.inserted_id
 
     return _serialize_hotel(hotel)
 
 
-def update_hotel(hotel_id: str, data, owner_id: str):
+async def update_hotel(hotel_id: str, data, owner_id: str):
     update_data = {k: v for k, v in data.dict(exclude_unset=True).items()}
 
     if not update_data:
         raise HTTPException(status_code=400, detail="No data to update")
 
-    result = hotel_collection.update_one(
-        {"_id": ObjectId(hotel_id), "owner_id": ObjectId(owner_id)},
+    result = await hotel_collection.update_one(
+        {"_id": ObjectId(hotel_id), "owner_id": ObjectId(owner_id), "is_active": True},
         {"$set": update_data},
     )
 
@@ -73,9 +73,9 @@ def update_hotel(hotel_id: str, data, owner_id: str):
     return {"msg": "Hotel updated successfully"}
 
 
-def delete_hotel(hotel_id: str, owner_id: str):
-    result = hotel_collection.delete_one(
-        {"_id": ObjectId(hotel_id), "owner_id": ObjectId(owner_id)}
+async def delete_hotel(hotel_id: str, owner_id: str):
+    result = await hotel_collection.delete_one(
+        {"_id": ObjectId(hotel_id), "owner_id": ObjectId(owner_id), "is_active": True}
     )
 
     if result.deleted_count == 0:
@@ -84,17 +84,22 @@ def delete_hotel(hotel_id: str, owner_id: str):
         )
 
     # Cascade delete all rooms belonging to this hotel
-    room_collection.delete_many({"hotel_id": ObjectId(hotel_id)})
+    await room_collection.delete_many({"hotel_id": ObjectId(hotel_id)})
 
     return {"msg": "Hotel deleted successfully"}
 
 
-def get_my_hotels(owner_id: str):
-    hotels = hotel_collection.find({"owner_id": ObjectId(owner_id)})
-    return [_serialize_hotel(hotel) for hotel in hotels]
+async def get_my_hotels(owner_id: str):
+    hotels = hotel_collection.find({"owner_id": ObjectId(owner_id), "is_active": True})
+
+    result = []
+    async for hotel in hotels:
+        result.append(_serialize_hotel(hotel))
+
+    return result
 
 
-def get_public_hotels(
+async def get_public_hotels(
     district: str | None = None,
     search: str | None = None,
     hotel_type: str | None = None,
@@ -115,7 +120,11 @@ def get_public_hotels(
     if hotel_type:
         query["hotel_type"] = hotel_type
 
-    hotels = list(hotel_collection.find(query))
+    cursor = hotel_collection.find(query)
+
+    hotels = []
+    async for hotel in cursor:
+        hotels.append(hotel)
 
     # Get min room prices for multi-room hotels (hotel/resort)
     multi_room_ids = [
@@ -130,7 +139,8 @@ def get_public_hotels(
             {"$match": {"hotel_id": {"$in": multi_room_ids}, "status": "available"}},
             {"$group": {"_id": "$hotel_id", "min_price": {"$min": "$price"}}},
         ]
-        for result in room_collection.aggregate(pipeline):
+        cursor = room_collection.aggregate(pipeline)
+        async for result in cursor:
             min_prices[str(result["_id"])] = result["min_price"]
 
     return [
@@ -143,8 +153,10 @@ def get_public_hotels(
     ]
 
 
-def get_public_hotel_by_id(hotel_id: str):
-    hotel = hotel_collection.find_one({"_id": ObjectId(hotel_id), "is_active": True})
+async def get_public_hotel_by_id(hotel_id: str):
+    hotel = await hotel_collection.find_one(
+        {"_id": ObjectId(hotel_id), "is_active": True}
+    )
 
     if not hotel:
         raise HTTPException(status_code=404, detail="Hotel not found")
@@ -156,7 +168,11 @@ def get_public_hotel_by_id(hotel_id: str):
             {"$match": {"hotel_id": ObjectId(hotel_id), "status": "available"}},
             {"$group": {"_id": None, "min_price": {"$min": "$price"}}},
         ]
-        result = list(room_collection.aggregate(pipeline))
+        cursor = room_collection.aggregate(pipeline)
+
+        result = []
+        async for r in cursor:
+            result.append(r)
         if result:
             price = result[0]["min_price"]
 

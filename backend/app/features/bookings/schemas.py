@@ -6,7 +6,6 @@ BookingStatus = Literal["booked", "checked_in", "checked_out", "cancelled"]
 
 
 class BookingCreate(BaseModel):
-    guest_id: str
     room_id: str
     check_in: date
     check_out: date

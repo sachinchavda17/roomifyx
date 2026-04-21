@@ -1,0 +1,299 @@
+==============================================================================
+ RoomifyX — Mobile App Changes Required After Backend Bug-Fix Pass
+ Date: 2026-04-21
+==============================================================================
+
+This file describes the API-surface changes you must reflect in the mobile app
+after the backend bug fixes. Each section is:
+
+  - Endpoint
+  - What changed
+  - What the mobile app must do
+
+==============================================================================
+ 1. AUTH — POST /auth/register
+==============================================================================
+
+WHAT CHANGED (server-side):
+  - Newly registered users are now correctly persisted with is_active = true.
+    Before this fix, new users were written without this field, and login
+    filtered by is_active=true — so NO NEW USER COULD LOG IN.
+  - Register now honours a "role" field when it is "user" or "owner"
+    (anything else falls back to "user"). Previously role was hard-coded
+    to "user".
+
+REQUEST BODY (unchanged shape, role now meaningful):
+  {
+    "first_name": "string",
+    "last_name":  "string",
+    "email":      "string",
+    "password":   "string (6-64 chars)",
+    "role":       "user" | "owner"      // optional; defaults to "user"
+  }
+
+RESPONSE (unchanged):
+  {
+    "message": "User registered successfully",
+    "token":   "<jwt>",
+    "role":    "user" | "owner"
+  }
+
+MOBILE APP ACTION:
+  - If your app has an "owner sign-up" flow, start sending role="owner".
+  - Existing users in the DB that have NO is_active field still work (the
+    login query is "is_active != false"), so no forced logout needed.
+  - If you previously manually created a test account and login failed —
+    re-register; it will work now.
+
+==============================================================================
+ 2. AUTH — POST /auth/login
+==============================================================================
+
+WHAT CHANGED:
+  - No request/response shape change. Only bug fix: HTTPException no longer
+    gets swallowed as a generic 500, so 401 "Invalid email or password"
+    actually reaches the client.
+
+MOBILE APP ACTION:
+  - Make sure your login screen correctly maps status 401 to "invalid
+    credentials" — previously the server could return 500 for bad
+    credentials.
+
+==============================================================================
+ 3. USERS — GET /users/me
+==============================================================================
+
+WHAT CHANGED (CRITICAL):
+  - Before: endpoint returned only { id, email, role } taken from the JWT
+    payload, which FAILED response-model validation because UserPublic
+    requires first_name and last_name. In practice this meant the endpoint
+    was broken / returning 500.
+  - Now: server fetches the full user record and returns the full
+    UserPublic shape.
+
+NEW RESPONSE:
+  {
+    "id":         "string",
+    "first_name": "string",
+    "last_name":  "string",
+    "email":      "string",
+    "role":       "user" | "owner" | "admin"
+  }
+
+MOBILE APP ACTION:
+  - If the mobile app had a workaround (e.g. decoding JWT itself to read
+    email, or parsing /auth/login's response to remember the user), you
+    can now simply call GET /users/me and trust the response.
+  - Profile screen should bind to first_name / last_name / email / role.
+
+==============================================================================
+ 4. USERS — PUT /users/me
+==============================================================================
+
+WHAT CHANGED:
+  - The "role" field was removed from UserUpdate. It was silently dropped
+    server-side anyway (to prevent privilege escalation); now it's
+    explicit: if the mobile app sends it, the server returns 422
+    Unprocessable Entity.
+
+REQUEST BODY (allowed fields now):
+  {
+    "first_name": "string (optional)",
+    "last_name":  "string (optional)"
+  }
+
+MOBILE APP ACTION:
+  - Remove any "role" key from the edit-profile payload on mobile.
+  - Do NOT try to change role via this endpoint.
+
+==============================================================================
+ 5. BOOKINGS — POST /bookings/     (CRITICAL — ENTIRE FLOW WAS BROKEN)
+==============================================================================
+
+WHAT CHANGED (CRITICAL):
+  - The bookings service file was written in synchronous PyMongo style but
+    the app uses Motor (async). That means every DB call previously
+    returned a coroutine object instead of a result — effectively the
+    booking endpoints were non-functional.
+  - The route handler referenced user["_id"] but get_current_user returns
+    user["id"] — so every authenticated booking call KeyError'd.
+  - BookingCreate schema required "guest_id" but the service never used
+    it. Any mobile client that didn't send guest_id got 422 validation
+    errors; any client that did send it wasted bandwidth.
+
+REQUEST BODY (OLD, broken):
+  {
+    "guest_id":      "string (required)",    // REMOVED
+    "room_id":       "string",
+    "check_in":      "YYYY-MM-DD",
+    "check_out":     "YYYY-MM-DD",
+    "customer_name": "string (optional)",
+    "customer_phone":"string (optional)"
+  }
+
+REQUEST BODY (NEW, correct):
+  {
+    "room_id":       "string",
+    "check_in":      "YYYY-MM-DD",
+    "check_out":     "YYYY-MM-DD",
+    "customer_name": "string (optional)",
+    "customer_phone":"string (optional)"
+  }
+
+NEW RESPONSE:
+  {
+    "id":      "string",          // booking id — NEW, was missing
+    "message": "Booking created successfully",
+    "nights":  <int>,
+    "amount":  <number>
+  }
+
+HEADERS:
+  Authorization: Bearer <jwt>    // required
+
+ERRORS the mobile app should now handle:
+  400  "Invalid room_id"                      (malformed ObjectId)
+  400  "Invalid check-in/check-out dates"     (check_in >= check_out)
+  400  "Room is not available"                (room is in maintenance)
+  404  "Room not found"
+  409  "Room already booked for selected dates"
+
+MOBILE APP ACTION:
+  - REMOVE the "guest_id" field from the booking-create payload. If your
+    current code sends it the server will now return 422.
+  - Start consuming the returned "id" to deep-link to the booking details
+    screen after creation.
+  - Show friendly error messages for the 409 overlap and the new 400
+    validation messages.
+
+==============================================================================
+ 6. BOOKINGS — GET /bookings/me
+==============================================================================
+
+WHAT CHANGED:
+  - Previously broken (sync handler calling async motor → returned
+    coroutines). Now returns an array of the current user's bookings.
+
+RESPONSE:
+  [
+    {
+      "id":        "string",
+      "room_id":   "string",
+      "check_in":  "YYYY-MM-DDTHH:MM:SS",
+      "check_out": "YYYY-MM-DDTHH:MM:SS",
+      "amount":    <number>,
+      "status":    "booked" | "checked_in" | "checked_out" | "cancelled"
+    }
+  ]
+
+HEADERS:
+  Authorization: Bearer <jwt>    // required
+
+MOBILE APP ACTION:
+  - "My Bookings" screen should now work. Previously it likely showed
+    empty / error state. No payload field changes from what was
+    originally intended; just actually functional now.
+
+==============================================================================
+ 7. BOOKINGS — PATCH /bookings/{booking_id}/cancel
+==============================================================================
+
+WHAT CHANGED:
+  - Authorization relaxed from "admin/owner only" to "any authenticated
+    user". (Previous behaviour blocked customers from cancelling their
+    own bookings.)
+  - Room-status recovery on cancel now only flips the room back to
+    "available" if the booking was in "checked_in" state. A cancelled
+    future booking no longer wrongly marks the room available while
+    another overlap exists.
+
+MOBILE APP ACTION:
+  - You can now expose a "Cancel booking" button on the user's own
+    bookings screen. Just send the authenticated user's JWT.
+  - If you had business rules restricting cancel to staff, revisit them.
+
+==============================================================================
+ 8. ROOMS — all endpoints (CRITICAL — ENTIRE MODULE WAS BROKEN)
+==============================================================================
+
+WHAT CHANGED (CRITICAL):
+  - The rooms routes were declared with plain `def` but the services were
+    `async def`. FastAPI wasn't awaiting, so handlers returned
+    un-awaited coroutine objects (500 errors / garbage payloads).
+  - get_all_rooms / get_rooms_by_hotel / get_public_rooms iterated Motor
+    cursors with sync `for`, which doesn't work.
+  - PATCH /rooms/{room_id}/status previously required role "staff", but
+    "staff" is not a valid role in the system — nobody could call it.
+    Now it accepts "admin" or "owner".
+  - PATCH /rooms/{room_id}/status now validates status against
+    {"available", "occupied", "maintenance"} and returns 400 on invalid.
+
+ROUTES (all now genuinely work):
+  POST   /rooms/                                (owner)            creates
+  GET    /rooms/                                (admin|owner)
+  GET    /rooms/hotel/{hotel_id}                (owner)
+  GET    /rooms/public/hotels/{hotel_id}/rooms  (public)
+  GET    /rooms/{room_id}                       (owner)
+  PUT    /rooms/{room_id}                       (owner)
+  DELETE /rooms/{room_id}                       (owner)
+  PATCH  /rooms/{room_id}/status?status=...     (admin|owner)
+
+MOBILE APP ACTION:
+  - Owner side: list/edit/delete rooms screens should now return real
+    data instead of errors.
+  - Public side: hotel-detail screen's "available rooms" list should now
+    populate correctly.
+  - If the app uses PATCH /rooms/{room_id}/status, keep sending status
+    as a query parameter (unchanged) and expect 400 for invalid values.
+
+==============================================================================
+ 9. DASHBOARD — GET /dashboard/
+==============================================================================
+
+WHAT CHANGED:
+  - Previously broken (sync handler + sync-style motor calls). Returns
+    proper JSON now. Shape is unchanged:
+
+RESPONSE:
+  {
+    "rooms":    { "total": n, "available": n, "occupied": n },
+    "today":    { "check_ins": n, "check_outs": n },
+    "bookings": { "active": n },
+    "revenue":  { "total": n }
+  }
+
+MOBILE APP ACTION:
+  - Owner/admin dashboard screen should now render. No shape change.
+
+==============================================================================
+ 10. HOTELS — unchanged on the wire
+==============================================================================
+
+No breaking changes; this file was already correct. Still uses:
+  GET    /hotels/
+  GET    /hotels/me              (owner)
+  GET    /hotels/{hotel_id}
+  POST   /hotels/                (owner)
+  PUT    /hotels/{hotel_id}      (owner)
+  DELETE /hotels/{hotel_id}      (owner)
+
+==============================================================================
+ SUMMARY — MINIMUM MOBILE APP CHANGES
+==============================================================================
+
+  [ ] In booking-create payload, STOP sending `guest_id`.
+  [ ] In update-profile payload, STOP sending `role`.
+  [ ] Re-test register + login flow end-to-end — previously any freshly
+      registered account couldn't log in.
+  [ ] Re-wire "My Bookings" and "My Rooms" screens — they should work
+      now.
+  [ ] Enable the "Cancel booking" button on the user side (no longer
+      admin-only).
+  [ ] Handle new booking error codes: 400 (bad dates / bad room_id),
+      409 (date overlap).
+  [ ] Consume the new `id` field in the POST /bookings/ response if you
+      want to deep-link into the booking after creation.
+  [ ] If sign-up exists for owners, send `role: "owner"`.
+  [ ] Dashboard and public room listings should now render — verify.
+
+==============================================================================

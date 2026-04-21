@@ -1,42 +1,71 @@
 from bson import ObjectId
 from fastapi import HTTPException, status
+from bson.errors import InvalidId
 
 from app.features.users.model import user_collection
 
 
-def get_user_by_id(user_id: str):
-    user = user_collection.find_one({"_id": ObjectId(user_id)})
+async def get_user_by_id(user_id: str):
+    try:
+        obj_id = ObjectId(user_id)
+    except InvalidId:
+        raise HTTPException(status_code=400, detail="Invalid user ID")
+
+    user = await user_collection.find_one(
+        {"_id": obj_id, "is_active": {"$ne": False}}
+    )
     if not user:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
         )
 
-    user["id"] = str(user["_id"])
-    user.pop("_id", None)
-    user.pop("password", None)
-    return user
+    return {
+        "id": str(user["_id"]),
+        "first_name": user.get("first_name", ""),
+        "last_name": user.get("last_name", ""),
+        "email": user["email"],
+        "role": user.get("role", "user"),
+    }
 
 
-def update_user(user_id: str, data: dict):
-    # Remove None values
+async def update_user(user_id: str, data: dict):
+    try:
+        obj_id = ObjectId(user_id)
+    except InvalidId:
+        raise HTTPException(status_code=400, detail="Invalid user ID")
+
     update_data = {k: v for k, v in data.items() if v is not None}
-    if not update_data:
-        return get_user_by_id(user_id)
 
-    result = user_collection.update_one(
-        {"_id": ObjectId(user_id)}, {"$set": update_data}
-    )
+    # Prevent role escalation
+    update_data.pop("role", None)
+
+    if not update_data:
+        return await get_user_by_id(user_id)
+
+    result = await user_collection.update_one({"_id": obj_id}, {"$set": update_data})
+
     if result.matched_count == 0:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
         )
-    return get_user_by_id(user_id)
+
+    return await get_user_by_id(user_id)
 
 
-def delete_user(user_id: str):
-    result = user_collection.delete_one({"_id": ObjectId(user_id)})
-    if result.deleted_count == 0:
+async def delete_user(user_id: str):
+    try:
+        obj_id = ObjectId(user_id)
+    except InvalidId:
+        raise HTTPException(status_code=400, detail="Invalid user ID")
+
+    result = await user_collection.update_one(
+        {"_id": obj_id, "is_active": True}, {"$set": {"is_active": False}}
+    )
+
+    if result.matched_count == 0:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found or already deleted",
         )
-    return {"message": "User deleted successfully"}
+
+    return {"message": "User deleted successfully", "user_id": user_id}
